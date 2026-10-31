@@ -131,10 +131,16 @@ def check_completeness(contract: dict[str, Any], metadata: MetaData) -> list[str
                 f"table {table.name} exists in models but is not declared in the contract"
             )
             continue
-        columns = {column["name"] for column in declared_table.get("columns", [])}
+        declared_columns = {column["name"] for column in declared_table.get("columns", [])}
+        model_columns = {column.name for column in table.columns}
         for column in table.columns:
-            if column.name not in columns:
+            if column.name not in declared_columns:
                 errors.append(f"column {table.name}.{column.name} is not declared in the contract")
+        for column_name in declared_columns - model_columns:
+            errors.append(
+                f"column {table.name}.{column_name} is declared in the contract but "
+                "missing in the model"
+            )
     for name in declared:
         if name in metadata.tables:
             continue
@@ -218,10 +224,30 @@ def check_relations(contract: dict[str, Any], metadata: MetaData) -> list[str]:
                         "must not reference SDE by foreign key"
                     )
                 declared = contract_tables(contract).get(column.table.name) or {}
+                composite = {
+                    name
+                    for fk in declared.get("foreign_keys") or []
+                    for name in fk.get("columns") or []
+                }
+                if column.name in composite:
+                    continue
                 spec = next(
                     (c for c in declared.get("columns", []) if c["name"] == column.name), {}
                 )
-                expected_on_delete = (spec.get("references") or {}).get("on_delete", "cascade")
+                reference = spec.get("references") or {}
+                if reference:
+                    if reference.get("table") != target:
+                        errors.append(
+                            f"{table.name}.{column.name}: foreign key points at {target}, "
+                            f"contract declares {reference.get('table')}"
+                        )
+                    if reference.get("column") != foreign_key.column.name:
+                        errors.append(
+                            f"{table.name}.{column.name}: foreign key points at "
+                            f"{target}.{foreign_key.column.name}, contract declares "
+                            f"{reference.get('table')}.{reference.get('column')}"
+                        )
+                expected_on_delete = reference.get("on_delete", "cascade")
                 actual = (foreign_key.ondelete or "no action").lower()
                 if expected_on_delete and actual != expected_on_delete.lower():
                     errors.append(

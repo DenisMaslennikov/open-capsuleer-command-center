@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
-from sqlalchemy import BigInteger, Column, Float, MetaData, Numeric, Table, Text
+from sqlalchemy import BigInteger, Column, Float, ForeignKey, MetaData, Numeric, Table, Text
 
 from app.db import schema_gate
 
@@ -135,3 +135,49 @@ def test_user_table_without_account_path_fails(contract_path: Path) -> None:
     )
     errors = schema_gate.run(contract_path, metadata)
     assert any("must reach accounts" in error for error in errors)
+
+
+def test_declared_column_missing_in_model_fails(contract_path: Path) -> None:
+    metadata = MetaData()
+    Table(
+        "accounts",
+        metadata,
+        Column("id", BigInteger, primary_key=True),
+        Column("email", Text, nullable=False),
+    )
+    Table(
+        "market_orders",
+        metadata,
+        Column("id", BigInteger, primary_key=True),
+        Column("account_id", BigInteger, nullable=False),
+    )
+    errors = schema_gate.run(contract_path, metadata)
+    assert any("declared in the contract but missing" in error for error in errors)
+
+
+def test_foreign_key_to_wrong_table_fails(contract_path: Path) -> None:
+    metadata = MetaData()
+    Table(
+        "accounts",
+        metadata,
+        Column("id", BigInteger, primary_key=True),
+        Column("email", Text, nullable=False),
+    )
+    Table(
+        "market_orders",
+        metadata,
+        Column("id", BigInteger, primary_key=True),
+        Column(
+            "account_id", BigInteger, ForeignKey("accounts.id", ondelete="cascade"), nullable=False
+        ),
+        Column("price", Numeric(20, 2), nullable=False),
+    )
+    contract = json.loads(contract_path.read_text(encoding="utf-8"))
+    contract["schema"]["aggregates"][1]["tables"][0]["columns"][1]["references"] = {
+        "table": "characters",
+        "column": "id",
+        "on_delete": "cascade",
+    }
+    contract_path.write_text(json.dumps(contract), encoding="utf-8")
+    errors = schema_gate.run(contract_path, metadata)
+    assert any("foreign key points at accounts" in error for error in errors)
