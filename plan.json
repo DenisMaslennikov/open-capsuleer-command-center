@@ -1,0 +1,62 @@
+{
+  "task": {
+    "id": "s0-t2",
+    "title": "Skill training speed in SP per minute from primary and secondary attributes",
+    "goal": "Add a pure domain function that returns a skill's training speed in SP per minute as primary + secondary / 2, with no rounding inside the function (the caller rounds), and an explicit domain error rejecting zero and negative attributes. Out of scope: implant bonuses (s0-t4) and training time (s0-t3).",
+    "acceptance_summary": "primary 17 / secondary 17 -> 25.5, 27/21 -> 37.5, 32/26 -> 45.0, always a float with no intermediate rounding; primary 0, secondary 0 or any negative attribute raises an explicit domain error; the backend test suite stays green and offline."
+  },
+  "subtasks": [
+    {
+      "id": "s0-t2-sp-per-minute",
+      "title": "Add sp_rate.skill_sp_per_minute with an attribute domain error",
+      "goal": "Create backend/src/app/domain/skills/sp_rate.py with skill_sp_per_minute(*, primary: int, secondary: int) -> float computing primary + secondary / 2 via true division so the result is always a float and no rounding happens inside; raise a new InvalidSkillAttributeError (ValueError subclass, in errors.py, following InvalidSkillRankError) when primary or secondary is zero or negative, naming the offending attribute in the message. Re-export the function and the error from the package __init__ like the existing domain symbols. Assumptions: attributes are integers as they come from the character sheet; arguments are keyword-only to match sp_table.py; table-driven tests for the acceptance pairs and error cases live in backend/tests/unit/test_sp_rate.py (written by the specifier, not listed in files_allowed).",
+      "files_allowed": [
+        "backend/src/app/domain/skills/sp_rate.py",
+        "backend/src/app/domain/skills/errors.py",
+        "backend/src/app/domain/skills/__init__.py"
+      ],
+      "contract": {
+        "new_signatures": [
+          "skill_sp_per_minute(*, primary: int, secondary: int) -> float; raises InvalidSkillAttributeError when primary or secondary is zero or negative",
+          "InvalidSkillAttributeError(message: str) -> None"
+        ]
+      },
+      "acceptance": [
+        {
+          "in": "skill_sp_per_minute(primary=17, secondary=17)",
+          "out": "returns 25.5"
+        },
+        {
+          "in": "skill_sp_per_minute(primary=27, secondary=21)",
+          "out": "returns 37.5"
+        },
+        {
+          "in": "skill_sp_per_minute(primary=32, secondary=26)",
+          "out": "returns 45.0"
+        },
+        {
+          "in": "skill_sp_per_minute(primary=21, secondary=17)",
+          "out": "returns 29.5 of exact type float with no intermediate rounding"
+        },
+        {
+          "in": "skill_sp_per_minute(primary=0, secondary=0)",
+          "out": "raises InvalidSkillAttributeError"
+        },
+        {
+          "in": "skill_sp_per_minute(primary=17, secondary=-1)",
+          "out": "raises InvalidSkillAttributeError naming the secondary attribute"
+        },
+        {
+          "in": "skill_sp_per_minute(primary=-5, secondary=17)",
+          "out": "raises InvalidSkillAttributeError naming the primary attribute"
+        },
+        {
+          "in": "cd backend && uv run pytest",
+          "out": "whole unit suite exits 0 offline, existing sp_table tests untouched"
+        }
+      ],
+      "depends_on": [],
+      "test_command": "cd backend && uv run pytest"
+    }
+  ]
+}
