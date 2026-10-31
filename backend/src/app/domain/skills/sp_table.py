@@ -1,20 +1,7 @@
 """Skill-point totals for trained skill levels.
 
-The accumulated cost of the levels below the trained one follows the game rule:
-``ceil(250 * rank * sqrt(32) ** (level - 1))`` for levels 1 through 5, and 0 for
-level 0.
-
-Arguments:
-    rank: skill rank, at least 1.
-    level: trained skill level, 0 through 5.
-
-Returns:
-    The accumulated skill points spent to reach ``level`` on a skill of the
-    given rank.
-
-Raises:
-    InvalidSkillLevelError: when ``level`` is below 0 or above 5.
-    InvalidSkillRankError: when ``rank`` is below 1.
+The accumulated cost of the levels below the trained one follows the game rule
+``ceil(250 * rank * sqrt(32) ** (level - 1))``.
 """
 
 from math import isqrt
@@ -29,6 +16,25 @@ _BASE_SP = 250
 
 
 def accumulated_skill_sp(*, rank: int, level: int) -> int:
+    """Return the accumulated skill points spent to reach a trained level.
+
+    The accumulated cost of the levels below the trained one follows the game
+    rule ``ceil(250 * rank * sqrt(32) ** (level - 1))`` for levels 1 through 5,
+    and 0 for level 0.
+
+    Arguments:
+        rank: skill rank, at least 1.
+        level: trained skill level, 0 through 5.
+
+    Returns:
+        The accumulated skill points spent to reach ``level`` on a skill of the
+        given rank.
+
+    Raises:
+        InvalidSkillLevelError: when ``level`` is below 0 or above 5.
+        InvalidSkillRankError: when ``rank`` is below 1.
+    """
+
     if level < _MIN_LEVEL or level > _MAX_LEVEL:
         raise InvalidSkillLevelError(f"level {level} outside {_MIN_LEVEL}..{_MAX_LEVEL}")
     if rank < 1:
