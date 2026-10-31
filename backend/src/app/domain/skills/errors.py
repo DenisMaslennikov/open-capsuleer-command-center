@@ -1,11 +1,3 @@
-
-class InvalidSkillRankError(ValueError):
-    """Raised when a skill rank is invalid."""
-
-
-class InvalidSkillAttributeError(ValueError):
-    """Raised when a skill attribute is invalid."""
-
 """Shared domain errors for invalid skill levels and ranks.
 
 The SP table functions raise these when called with values the game rules
@@ -52,3 +44,20 @@ class InvalidSkillRankError(ValueError):
 
         super().__init__(message)
 
+
+class InvalidSkillAttributeError(ValueError):
+    """Raised when a skill attribute is zero or negative.
+
+    The message names the offending attribute so a caller can surface it verbatim
+    to the user.
+    """
+
+    def __init__(self, message: str) -> None:
+        """Create the error.
+
+        Arguments:
+            message: human-readable text naming the invalid attribute, shown verbatim
+                to downstream callers.
+        """
+
+        super().__init__(message)
