@@ -1,0 +1,94 @@
+# OCCC · Dark theme tokens
+
+Source of truth for the dark palette. It is a mapping, not a page: the same component tree, the
+same `AppShell` layout, the same states — only the colour values change. The light theme stays the
+default and is untouched; `dark` is an opt-in account setting. Every dark value below is a literal
+hex or `rgba()` so it can be pasted into `src/theme/tokens.ts` as is. Contrast ratios are WCAG 2.x
+measured against the named dark surface (canvas `#0f141a`, container `#161c24`, nav `#131a22`,
+elevated `#202836`, tint wash `#1e2a3e` as the 12 % primary over container).
+
+## Mapping table
+
+| token | light value | dark value | use | contrast note |
+|---|---|---|---|---|
+| `colorBgLayout` | `#f7f8fa` | `#0f141a` | Canvas behind every screen — the page background that shows around panels. | Body text `#e6edf7` 15.70:1, secondary `#93a1b5` 7.05:1 on it. |
+| `colorBgContainer` | `#ffffff` | `#161c24` | Cards, panels, top bar, inputs, popovers, dropdown menus. | Text 14.54:1, secondary 6.53:1, primary accent `#5b8ff9` 5.50:1. |
+| `colorBorder` | `#dde1e8` | `#273140` | Hairline strokes: card outlines, input borders, dividers on cards. | 1.31:1 vs container — decorative, below 3:1. Interactive boundaries are carried by the focus ring (`#5b8ff9`, 5.50:1). |
+| `colorText` | `#1f2328` | `#e6edf7` | Primary text everywhere: names, numbers, values. | 15.70:1 on canvas, 14.54:1 on container, 12.57:1 on elevated. |
+| `colorTextSecondary` | `#6b7280` | `#93a1b5` | Labels, captions, section subtitles, inactive nav labels. | 7.05:1 on canvas, 6.53:1 on container, 5.65:1 on elevated — comfortably above the 3:1 target. |
+| `colorPrimary` | `#3b5bdb` | `#5b8ff9` | Links, selected nav item, primary button fill, focus ring, "queued" accent. | As text/accent: 5.94:1 on canvas, 5.50:1 on container, 4.75:1 on elevated. As a fill it keeps the algorithm's `#ffffff` label at 3.11:1 — the same trade-off as Ant Design's own dark seed; filled-button labels are large chrome text, and the dark hover state is the brighter `#7aa6ff`, inverting the light theme's darker hover. |
+| `colorPrimaryHover` | `#2f49b0` | `#7aa6ff` | Hover of links, nav items and primary buttons. | 7.12:1 on container, 7.69:1 on canvas as text; direction reversed vs light (light hover darkens, dark hover brightens) because darkening a dark canvas would hide the change. |
+| `colorSuccess` | `#2f9e44` | `#3fbf6f` | Generic success: sync ok, API key valid, alerts. | 7.26:1 on container as dot/accent; 7.83:1 on canvas. |
+| `colorError` | `#e03131` | `#e5534b` | Ant Design error semantics (alerts, form validation). | Same value as `colorDanger`: 4.63:1 on container, 4.99:1 on canvas. |
+| `colorWarning` | `#e8a13a` | `#e8a33d` | Ant Design warning semantics (alerts, degraded state). | 7.94:1 on container, 6.87:1 on elevated. Nearly identical to the light value — the light amber already sits where a dark amber must. |
+| `spaceXxs` | `4px` | `4px` | Smallest spacing unit. | n/a — not a colour. |
+| `spaceXs` | `8px` | `8px` | Extra-small spacing. | n/a — not a colour. |
+| `spaceSm` | `12px` | `12px` | Small spacing. | n/a — not a colour. |
+| `spaceMd` | `16px` | `16px` | Medium spacing, base unit. | n/a — not a colour. |
+| `spaceLg` | `24px` | `24px` | Large spacing. | n/a — not a colour. |
+| `spaceXl` | `32px` | `32px` | Extra-large spacing. | n/a — not a colour. |
+| `spaceXxl` | `48px` | `48px` | Largest spacing unit. | n/a — not a colour. |
+| `radiusSm` | `4px` | `4px` | Small corner radius. | n/a — not a colour. |
+| `radiusMd` | `8px` | `8px` | Medium corner radius. | n/a — not a colour. |
+| `radiusLg` | `12px` | `12px` | Large corner radius. | n/a — not a colour. |
+| `fontFamily` | `'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif` | `'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif` | Body and interface font stack. | n/a — not a colour. |
+| `fontSizeSm` | `12px` | `12px` | Small font size. | n/a — not a colour. |
+| `fontSizeMd` | `14px` | `14px` | Medium font size, base. | n/a — not a colour. |
+| `fontSizeLg` | `16px` | `16px` | Large font size. | n/a — not a colour. |
+| `fontSizeXl` | `20px` | `20px` | Extra-large font size. | n/a — not a colour. |
+| `fontSizeXxl` | `28px` | `28px` | Largest font size. | n/a — not a colour. |
+| `motionFast` | `120ms` | `120ms` | Fast transition duration. | n/a — not a colour. |
+| `motionBase` | `180ms` | `180ms` | Base transition duration. | n/a — not a colour. |
+
+Deliberate deviations from the anchor palette, with reasons: `colorSkillUnreachable` and
+`colorSkillNoAccess` move from the muted `#6b7686` anchor to `#8f9aab` (an unreachable character is
+information, not decoration, and must clear the 3:1 status floor on every surface); the primary
+tint alpha rises from 10 % to 12 % (a 10 % wash vanishes on ink); `colorBgNav` becomes its own
+`#131a22` instead of sharing the `#161c24` surface anchor (the rail must stay perceptibly recessed
+without a visible seam). Everything else keeps the anchor values because they already clear their
+contrast floors — see the measured column.
+
+## Ant Design
+
+Wire the dark theme through the algorithm, not by hand-tuning every Ant token:
+
+```ts
+import { theme } from "antd";
+import { antdTheme } from "./antd"; // already derived from tokens.ts
+
+<ConfigProvider
+  theme={{
+    algorithm: [theme.darkAlgorithm],
+    ...antdTheme, // same shape as light: token + components overrides, now with dark values
+  }}
+>
+```
+
+- Override on top of the algorithm, in `token`, exactly the values the table pins: the brand and
+  status seeds (`colorPrimary`, `colorPrimaryHover`, `colorSuccess`, `colorError`, `colorWarning`)
+  and the pinned surfaces and text (`colorBgLayout`, `colorBgContainer`, `colorBgNav`,
+  `colorBorder`, `colorSplit`, `colorText`, `colorTextSecondary`) — `tokens.ts` is the single
+  source and `antd.ts` must derive from it, not from Ant's defaults.
+- The domain states — `colorSkillLearned`, `colorSkillQueued`, `colorSkillNext`,
+  `colorSkillUnreachable`, `colorSkillNoAccess`, `colorSkillStale`, `colorDanger`,
+  `colorPrimaryTint` — stay in `tokens.ts` only and are consumed by markup and `common/`
+  components; Ant has no slot for them, so the algorithm cannot know them.
+- Do NOT override: sizing, spacing, radii, font family and sizes, motion durations, and everything
+  the algorithm already derives from the seed — the neutral scale, hover/active variants of the
+  overridden colours, `colorTextTertiary`/`colorTextQuaternary`, disabled states, and
+  component-internal fills (table row hover, alert and tag backgrounds). Hand values there would
+  drift from the algorithm.
+- The seed colour changes: `#2f6fed` → `#5b8ff9`. In light theme the accent must be dark enough to
+  carry `#ffffff` label text; in dark theme the accent must instead clear 4.5:1 against ink
+  surfaces as text, links and focus rings, which forces a lighter blue. `theme.darkAlgorithm` seeds
+  from `colorPrimary` and derives hover/active/background variants from it, so brightening the seed
+  automatically produces the brightened variant set.
+
+## Switching
+
+- The theme is a user setting stored with the account (`settings.theme: "light" | "dark"`,
+  light as default); the saved value is applied on load, before first paint.
+- Switching applies `<body data-theme="dark">` for the token layer and `theme.darkAlgorithm` in
+  `ConfigProvider` for Ant — both from one state, never set separately.
+- No component reads a colour directly: markup references semantic tokens only, so a component
+  never knows which theme is active.
