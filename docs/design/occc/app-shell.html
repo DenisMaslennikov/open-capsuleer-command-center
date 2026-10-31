@@ -54,41 +54,34 @@ body{margin:0;padding:var(--space-lg);background:var(--color-bg-layout);color:va
   border:1px solid var(--color-border);border-radius:var(--radius-lg);background:var(--color-bg-container);font-size:13px}
 .sync-dot{width:8px;height:8px;border-radius:50%;background:var(--color-skill-learned)}
 
-/* Character switcher — button, portrait stack, panel */
+/* Character switcher — single-select. The trigger names the active character,
+   the panel switches the whole screen to the picked row. */
 .cs{position:relative}
-.cs-btn{display:inline-flex;align-items:center;gap:var(--space-sm);height:32px;padding:0 var(--space-sm) 0 4px;
+.cs-btn{display:inline-flex;align-items:center;gap:var(--space-sm);height:36px;padding:0 var(--space-sm) 0 4px;
   border:1px solid var(--color-border);border-radius:999px;background:var(--color-bg-container);cursor:pointer;
-  font:500 13px/1 var(--font-family);color:var(--color-text);transition:border-color var(--motion-fast)}
+  font:500 13px/1.2 var(--font-family);color:var(--color-text);transition:border-color var(--motion-fast)}
 .cs-btn:hover{border-color:var(--color-primary)}
 .cs-btn[aria-expanded="true"]{border-color:var(--color-primary);box-shadow:var(--shadow-sm)}
-.cs-stack{display:inline-flex;padding-left:4px}
 .cs-portrait{position:relative;width:28px;height:28px;border-radius:50%;flex:none;
   background:var(--color-bg-container);box-shadow:0 0 0 2px var(--color-bg-container)}
 .cs-portrait svg{display:block;width:100%;height:100%}
-.cs-portrait+.cs-portrait{margin-left:-10px}
-.cs-overflow{display:inline-grid;place-items:center;height:28px;min-width:28px;margin-left:-10px;padding:0 7px;
-  border-radius:999px;background:var(--color-primary-bg);box-shadow:0 0 0 2px var(--color-bg-container);
-  color:var(--color-primary);font-size:11px;font-weight:600}
 .cs-label{display:inline-flex;flex-direction:column;line-height:1.25;text-align:left}
-.cs-scope{white-space:nowrap}
-.cs-scope .ru{font-weight:400}
-.cs-scope--subset .ru{color:var(--color-text)}
-.cs-count{display:block;color:var(--color-text-secondary);font-weight:400;font-size:11px}
+.cs-active-name{white-space:nowrap}
+.cs-active-corp{color:var(--color-text-secondary);font-weight:400;font-size:11px;letter-spacing:.04em}
 .cs-caret{width:14px;height:14px;stroke:var(--color-text-secondary);margin-left:2px}
 .cs-panel{position:absolute;top:calc(100% + var(--space-xxs));right:0;z-index:5;width:320px;
   background:var(--color-bg-container);border:1px solid var(--color-border);border-radius:var(--radius-md);
   box-shadow:var(--shadow-panel)}
 .cs-head{display:flex;align-items:baseline;gap:var(--space-xs);padding:var(--space-sm) var(--space-md);
   border-bottom:1px solid var(--color-border);font-size:13px}
-.cs-head-title{font-weight:600;margin-right:auto}
-.cs-act{border:0;background:transparent;padding:0;font:500 13px/1.4 var(--font-family);color:var(--color-primary);
-  cursor:pointer;border-radius:var(--radius-sm)}
-.cs-act:hover{color:var(--color-primary-hover);text-decoration:underline}
-.cs-list{list-style:none;margin:0;padding:var(--space-xxs) 0}
-.cs-row{display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-xxs) var(--space-md);min-height:44px}
-.cs-row+.cs-row{border-top:1px solid var(--color-border)}
+.cs-head-title{font-weight:600}
+.cs-list{list-style:none;margin:0;padding:var(--space-xxs) var(--space-xxs)}
+.cs-row{position:relative;display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-xs) var(--space-sm);
+  border-radius:var(--radius-md);min-height:48px;border:0;background:transparent;width:100%;cursor:pointer;
+  font:inherit;text-align:left;transition:background var(--motion-fast)}
+.cs-row:hover{background:var(--color-primary-bg-hover)}
 .cs-row .cs-portrait{width:32px;height:32px}
-.cs-name{margin-right:auto}
+.cs-name{margin-right:auto;min-width:0}
 .cs-row-name{font-weight:500;color:var(--color-text);line-height:1.3}
 .cs-row-corp{font-size:12px;color:var(--color-text-secondary)}
 .cs-row-state{position:relative;display:inline-block;flex:none}
@@ -96,19 +89,26 @@ body{margin:0;padding:var(--space-lg);background:var(--color-bg-layout);color:va
 .cs-row[data-character-state="stale"] .cs-row-state::before{background:var(--color-skill-next)}
 .cs-row[data-character-state="no-access"] .cs-row-state::before{background:var(--color-skill-unreachable)}
 .cs-row[data-character-state="no-access"] .cs-row-name{color:var(--color-text-secondary)}
+.cs-active{display:inline-block;flex:none;margin-left:var(--space-xxs);padding:1px var(--space-xxs);
+  border-radius:var(--radius-sm);background:var(--color-primary-bg);color:var(--color-primary);
+  font-size:10px;font-weight:600;letter-spacing:.05em;line-height:1.5}
+.cs-row[data-character-active="true"]{background:var(--color-primary-bg)}
+.cs-row[data-character-active="true"]::after{content:"";position:absolute;left:0;top:6px;bottom:6px;width:2px;
+  border-radius:var(--radius-sm);background:var(--color-primary)}
+.cs-row[data-character-active="true"]:hover{background:var(--color-primary-bg)}
+.cs-row[aria-disabled="true"]{cursor:default}
+.cs-row[aria-disabled="true"]:hover{background:transparent}
 .cs-reason{margin-right:auto;padding-top:2px}
 .cs-reason code{font-family:var(--font-mono);font-size:11px;color:var(--color-skill-unreachable);word-break:break-all}
 .cs-grant{border:0;background:transparent;padding:0;font:500 13px/1.4 var(--font-family);color:var(--color-primary);
   cursor:pointer;border-radius:var(--radius-sm)}
 .cs-grant:hover{color:var(--color-primary-hover);text-decoration:underline}
-.cs-check{display:inline-grid;place-items:center;width:16px;height:16px;flex:none}
-.cs-check input{margin:0;width:16px;height:16px;accent-color:var(--color-primary);cursor:pointer}
-.cs-check--disabled input{cursor:not-allowed;opacity:.5}
 .cs-foot{display:flex;justify-content:flex-start;padding:var(--space-xs) var(--space-md);border-top:1px solid var(--color-border)}
 .cs-add{display:inline-flex;align-items:center;gap:var(--space-xxs);border:0;background:transparent;padding:0;
   font:500 13px/1.4 var(--font-family);color:var(--color-primary);cursor:pointer;border-radius:var(--radius-sm)}
 .cs-add:hover{color:var(--color-primary-hover);text-decoration:underline}
 .cs-add svg{width:12px;height:12px}
+.cs-row[data-character-active="false"] .cs-active{display:none}
 
 /* Portraits — inline SVG, two tones of one hue, deterministic per character */
 .p-avatar{border-radius:50%;overflow:hidden}
@@ -116,6 +116,9 @@ body{margin:0;padding:var(--space-lg);background:var(--color-bg-layout);color:va
 .p-fg{fill:var(--p-fg)}
 .p-hair{fill:var(--p-fg);opacity:.85}
 .p-skin{fill:color-mix(in srgb,var(--p-fg) 22%,#fff)}
+
+/* The one-line caption that ties the switcher to the screen below it. */
+.cs-note{margin:var(--space-xs) 0 0;padding:0 var(--space-xxs);font-size:11px;color:var(--color-text-secondary)}
 
 .rail{background:var(--color-bg-rail);border-right:1px solid var(--color-border);padding:var(--space-sm) var(--space-xs)}
 .rail ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
@@ -155,6 +158,7 @@ body{margin:0;padding:var(--space-lg);background:var(--color-bg-layout);color:va
     <symbol id="i-market" viewBox="0 0 24 24"><path d="M3 3v18h18M7 15l4-4 3 3 6-7"/></symbol>
     <symbol id="i-killmail" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/></symbol>
     <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 9.4-3.9M14.5 4.9a3.2 3.2 0 0 1 0 7.2M16.5 15.4a5.5 5.5 0 0 1 4 3.6"/></symbol>
   </defs>
 </svg>
 <style>svg use{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
@@ -164,7 +168,7 @@ body{margin:0;padding:var(--space-lg);background:var(--color-bg-layout);color:va
 
 <h1 class="spec-title">Application shell · Оболочка приложения</h1>
 
-<p class="caption">1 · data-nav="expanded" — 232 px rail, burger shown with its focus ring, switcher open on the character panel</p>
+<p class="caption">1 · data-nav="expanded" — 232 px rail, single-select switcher open, the aggregate view is the active row</p>
 <div class="shell" data-component="AppShell">
   <header class="topbar" data-component="TopBar">
     <div class="brand">
@@ -175,76 +179,89 @@ body{margin:0;padding:var(--space-lg);background:var(--color-bg-layout);color:va
     <h2 class="page-title">Skill plan · <span class="ru" lang="ru">План обучения</span></h2>
     <div class="topbar-end">
       <div class="cs" data-component="CharacterSwitcher">
-        <button class="cs-btn" type="button" aria-expanded="true" aria-controls="cs-panel-1">
-          <span class="cs-stack" aria-hidden="true">
-            <span class="cs-portrait"><svg data-component="CharacterPortrait" data-portrait="Kadir Aylin" viewBox="0 0 28 28" style="--p-bg:#dbe4f0;--p-fg:#49658d"><circle class="p-bg" cx="14" cy="14" r="14"/><path class="p-fg" d="M4 28a10 10 0 0 1 20 0z"/><circle class="p-skin" cx="14" cy="10.5" r="4.5"/></svg></span>
-            <span class="cs-portrait"><svg data-component="CharacterPortrait" data-portrait="Saya Okamoto" viewBox="0 0 28 28" style="--p-bg:#dbf0eb;--p-fg:#498d7c"><circle class="p-bg" cx="14" cy="14" r="14"/><path class="p-fg" d="M4 28a10 10 0 0 1 20 0z"/><circle class="p-skin" cx="14" cy="10.5" r="4.5"/><path class="p-hair" d="M9.5 10.5a4.5 4.5 0 0 1 9 0v2H18a5.5 5.5 0 0 0-8 0z"/></svg></span>
-            <span class="cs-portrait"><svg data-component="CharacterPortrait" data-portrait="Marcus Vane" viewBox="0 0 28 28" style="--p-bg:#f0e3db;--p-fg:#8d6449"><circle class="p-bg" cx="14" cy="14" r="14"/><path class="p-fg" d="M4 28a10 10 0 0 1 20 0z"/><circle class="p-skin" cx="14" cy="10.5" r="4.5"/><path class="p-hair" d="M9.5 10.5a4.5 4.5 0 0 1 9 0v-1H18a5.5 5.5 0 0 0-8 0z"/></svg></span>
-            <span class="cs-overflow num" aria-hidden="true">+2</span>
-          </span>
+        <button class="cs-btn" type="button" aria-expanded="true" aria-haspopup="listbox" aria-controls="cs-panel-1"
+          aria-label="Active character: All characters · Активный персонаж: Все персонажи">
+          <span class="cs-portrait" aria-hidden="true"><svg viewBox="0 0 28 28" style="--p-bg:#dbe4f0"><circle class="p-bg" cx="14" cy="14" r="14"/><use href="#i-users" x="5" y="5" width="18" height="18"/></svg></span>
           <span class="cs-label">
-            <span class="cs-scope">All characters · <span class="ru" lang="ru">Все персонажи</span></span>
-            <span class="cs-count num" aria-hidden="true">5 of 5</span>
+            <span class="cs-active-name">All characters · <span class="ru" lang="ru">Все персонажи</span></span>
+            <span class="cs-active-corp"><span class="num">5 of 5</span> · <span lang="ru">агрегат</span></span>
           </span>
           <svg class="cs-caret" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 5.5 7 9.5l4-4"/></svg>
         </button>
-        <div class="cs-panel" id="cs-panel-1" role="group" aria-label="Characters · Персонажи">
+        <div class="cs-panel" id="cs-panel-1" role="group" aria-label="Active character · Активный персонаж">
+          <!-- Single select: one radio checked, no checkboxes. The whole screen below shows that character. -->
           <div class="cs-head">
-            <span class="cs-head-title">Characters · <span class="ru" lang="ru">Персонажи</span></span>
-            <button class="cs-act" type="button">all</button>
-            <button class="cs-act" type="button">none</button>
+            <span class="cs-head-title">Active character · <span class="ru" lang="ru">Активный персонаж</span></span>
           </div>
-          <ul class="cs-list">
-            <li class="cs-row" data-component="CharacterRow" data-character-state="synced">
-              <span class="cs-portrait"><svg data-component="CharacterPortrait" data-portrait="Kadir Aylin" viewBox="0 0 32 32" style="--p-bg:#dbe4f0;--p-fg:#49658d"><circle class="p-bg" cx="16" cy="16" r="16"/><path class="p-fg" d="M4 32a12 12 0 0 1 24 0z"/><circle class="p-skin" cx="16" cy="12" r="5"/><path class="p-hair" d="M11 12a5 5 0 0 1 10 0v1H20a6.5 6.5 0 0 0-9 0z"/></svg></span>
+          <div class="cs-list" role="radiogroup" aria-label="Characters · Персонажи">
+            <button class="cs-row" type="button" role="radio" aria-checked="true" data-component="CharacterRow"
+              data-character-active="true" data-character-state="synced">
+              <span class="cs-portrait" aria-hidden="true"><svg viewBox="0 0 32 32" style="--p-bg:#dbe4f0"><circle class="p-bg" cx="16" cy="16" r="16"/><use href="#i-users" x="7" y="7" width="18" height="18"/></svg></span>
+              <span class="cs-name">
+                <span class="cs-row-name">All characters · <span class="ru" lang="ru">Все персонажи</span></span>
+                <span class="cs-row-corp"><span class="num">5 of 5</span></span>
+              </span>
+              <span class="cs-active">active · <span lang="ru">выбран</span></span>
+            </button>
+            <button class="cs-row" type="button" role="radio" aria-checked="false" data-component="CharacterRow"
+              data-character-active="false" data-character-state="synced">
+              <span class="cs-portrait" aria-hidden="true"><svg data-component="CharacterPortrait" data-portrait="Kadir Aylin" viewBox="0 0 32 32" style="--p-bg:#dbe4f0;--p-fg:#49658d"><circle class="p-bg" cx="16" cy="16" r="16"/><path class="p-fg" d="M4 32a12 12 0 0 1 24 0z"/><circle class="p-skin" cx="16" cy="12" r="5"/><path class="p-hair" d="M11 12a5 5 0 0 1 10 0v1H20a6.5 6.5 0 0 0-9 0z"/></svg></span>
               <span class="cs-name">
                 <span class="cs-row-name">Kadir Aylin</span>
                 <span class="cs-row-corp">KAD</span>
               </span>
               <span class="cs-row-state" title="synced · синхронизирован" aria-hidden="true"></span>
-              <span class="cs-check"><input type="checkbox" aria-label="Select Kadir Aylin" checked></span>
-            </li>
-            <li class="cs-row" data-component="CharacterRow" data-character-state="synced">
-              <span class="cs-portrait"><svg data-component="CharacterPortrait" data-portrait="Saya Okamoto" viewBox="0 0 32 32" style="--p-bg:#dbf0eb;--p-fg:#498d7c"><circle class="p-bg" cx="16" cy="16" r="16"/><path class="p-fg" d="M4 32a12 12 0 0 1 24 0z"/><circle class="p-skin" cx="16" cy="12" r="5"/><path class="p-hair" d="M11 12a5 5 0 0 1 10 0v3H20a6.5 6.5 0 0 0-9 0z"/></svg></span>
+              <span class="cs-active">active · <span lang="ru">выбран</span></span>
+            </button>
+            <button class="cs-row" type="button" role="radio" aria-checked="false" data-component="CharacterRow"
+              data-character-active="false" data-character-state="synced">
+              <span class="cs-portrait" aria-hidden="true"><svg data-component="CharacterPortrait" data-portrait="Saya Okamoto" viewBox="0 0 32 32" style="--p-bg:#dbf0eb;--p-fg:#498d7c"><circle class="p-bg" cx="16" cy="16" r="16"/><path class="p-fg" d="M4 32a12 12 0 0 1 24 0z"/><circle class="p-skin" cx="16" cy="12" r="5"/><path class="p-hair" d="M11 12a5 5 0 0 1 10 0v3H20a6.5 6.5 0 0 0-9 0z"/></svg></span>
               <span class="cs-name">
                 <span class="cs-row-name">Saya Okamoto</span>
                 <span class="cs-row-corp">OKM</span>
               </span>
               <span class="cs-row-state" title="synced · синхронизирован" aria-hidden="true"></span>
-              <span class="cs-check"><input type="checkbox" aria-label="Select Saya Okamoto" checked></span>
-            </li>
-            <li class="cs-row" data-component="CharacterRow" data-character-state="stale">
-              <span class="cs-portrait"><svg data-component="CharacterPortrait" data-portrait="Marcus Vane" viewBox="0 0 32 32" style="--p-bg:#f0e3db;--p-fg:#8d6449"><circle class="p-bg" cx="16" cy="16" r="16"/><path class="p-fg" d="M4 32a12 12 0 0 1 24 0z"/><circle class="p-skin" cx="16" cy="12" r="5"/><path class="p-hair" d="M11 12a5 5 0 0 1 10 0v-1H20a6.5 6.5 0 0 0-9 0z"/></svg></span>
+              <span class="cs-active">active · <span lang="ru">выбран</span></span>
+            </button>
+            <button class="cs-row" type="button" role="radio" aria-checked="false" data-component="CharacterRow"
+              data-character-active="false" data-character-state="stale">
+              <span class="cs-portrait" aria-hidden="true"><svg data-component="CharacterPortrait" data-portrait="Marcus Vane" viewBox="0 0 32 32" style="--p-bg:#f0e3db;--p-fg:#8d6449"><circle class="p-bg" cx="16" cy="16" r="16"/><path class="p-fg" d="M4 32a12 12 0 0 1 24 0z"/><circle class="p-skin" cx="16" cy="12" r="5"/><path class="p-hair" d="M11 12a5 5 0 0 1 10 0v-1H20a6.5 6.5 0 0 0-9 0z"/></svg></span>
               <span class="cs-name">
                 <span class="cs-row-name">Marcus Vane</span>
                 <span class="cs-row-corp">VNA</span>
               </span>
               <span class="cs-row-state" title="stale · устарел" aria-hidden="true"></span>
-              <span class="cs-check"><input type="checkbox" aria-label="Select Marcus Vane"></span>
-            </li>
-            <li class="cs-row" data-component="CharacterRow" data-character-state="synced">
-              <span class="cs-portrait"><svg data-component="CharacterPortrait" data-portrait="Elin Drako" viewBox="0 0 32 32" style="--p-bg:#e3dbf0;--p-fg:#62498d"><circle class="p-bg" cx="16" cy="16" r="16"/><path class="p-fg" d="M4 32a12 12 0 0 1 24 0z"/><circle class="p-skin" cx="16" cy="12" r="5"/><path class="p-hair" d="M11 12a5 5 0 0 1 10 0v4H20a6.5 6.5 0 0 0-9 0z"/></svg></span>
+              <span class="cs-active">active · <span lang="ru">выбран</span></span>
+            </button>
+            <button class="cs-row" type="button" role="radio" aria-checked="false" data-component="CharacterRow"
+              data-character-active="false" data-character-state="synced">
+              <span class="cs-portrait" aria-hidden="true"><svg data-component="CharacterPortrait" data-portrait="Elin Drako" viewBox="0 0 32 32" style="--p-bg:#e3dbf0;--p-fg:#62498d"><circle class="p-bg" cx="16" cy="16" r="16"/><path class="p-fg" d="M4 32a12 12 0 0 1 24 0z"/><circle class="p-skin" cx="16" cy="12" r="5"/><path class="p-hair" d="M11 12a5 5 0 0 1 10 0v4H20a6.5 6.5 0 0 0-9 0z"/></svg></span>
               <span class="cs-name">
                 <span class="cs-row-name">Elin Drako</span>
                 <span class="cs-row-corp">DRK</span>
               </span>
               <span class="cs-row-state" title="synced · синхронизирован" aria-hidden="true"></span>
-              <span class="cs-check"><input type="checkbox" aria-label="Select Elin Drako" checked></span>
-            </li>
-            <li class="cs-row" data-component="CharacterRow" data-character-state="no-access">
-              <span class="cs-portrait"><svg data-component="CharacterPortrait" data-portrait="Rei Tanaka" viewBox="0 0 32 32" style="--p-bg:#f0dbe3;--p-fg:#8d4962"><circle class="p-bg" cx="16" cy="16" r="16"/><path class="p-fg" d="M4 32a12 12 0 0 1 24 0z"/><circle class="p-skin" cx="16" cy="12" r="5"/><path class="p-hair" d="M11 12a5 5 0 0 1 10 0v2H20a6.5 6.5 0 0 0-9 0z"/></svg></span>
+              <span class="cs-active">active · <span lang="ru">выбран</span></span>
+            </button>
+            <!-- Not selectable until the scope is granted; the row itself is a div so the grant button stays valid HTML. -->
+            <div class="cs-row" role="radio" aria-checked="false" aria-disabled="true" tabindex="-1"
+              data-component="CharacterRow" data-character-active="false" data-character-state="no-access">
+              <span class="cs-portrait" aria-hidden="true"><svg data-component="CharacterPortrait" data-portrait="Rei Tanaka" viewBox="0 0 32 32" style="--p-bg:#f0dbe3;--p-fg:#8d4962"><circle class="p-bg" cx="16" cy="16" r="16"/><path class="p-fg" d="M4 32a12 12 0 0 1 24 0z"/><circle class="p-skin" cx="16" cy="12" r="5"/><path class="p-hair" d="M11 12a5 5 0 0 1 10 0v2H20a6.5 6.5 0 0 0-9 0z"/></svg></span>
               <span class="cs-name">
                 <span class="cs-row-name">Rei Tanaka</span>
                 <span class="cs-row-corp">TNK</span>
               </span>
+              <span class="cs-row-state" title="no access · нет доступа" aria-hidden="true"></span>
               <span class="cs-reason">missing scope <code>esi-skills.read_skills.v1</code></span>
               <button class="cs-grant" type="button">grant</button>
-            </li>
-          </ul>
+            </div>
+          </div>
           <div class="cs-foot">
             <button class="cs-add" type="button"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.5v9M1.5 6h9"/></svg>Add character · <span class="ru" lang="ru">Добавить персонажа</span></button>
           </div>
         </div>
+        <!-- The whole screen below the top bar shows the active character: plan, queue, SP. -->
+        <p class="cs-note">the plan below belongs to the active character · <span lang="ru">план ниже относится к выбранному персонажу</span></p>
       </div>
       <span class="sync" data-component="SyncBadge" role="status">
         <span class="sync-dot" aria-hidden="true"></span>
@@ -267,7 +284,7 @@ body{margin:0;padding:var(--space-lg);background:var(--color-bg-layout);color:va
   <main class="content"><div class="card">Page content slot · <span lang="ru">Область страницы</span></div></main>
 </div>
 
-<p class="caption">2 · data-nav="collapsed" — 64 px rail, icons only, tooltip pinned on "Skills" for review, switcher in subset state</p>
+<p class="caption">2 · data-nav="collapsed" — 64 px rail, icons only, tooltip pinned on "Skills"; same panel after the click: Kadir Aylin is active</p>
 <div class="shell shell--collapsed" data-component="AppShell">
   <header class="topbar" data-component="TopBar">
     <div class="brand">
@@ -277,19 +294,87 @@ body{margin:0;padding:var(--space-lg);background:var(--color-bg-layout);color:va
     <h2 class="page-title">Skill plan · <span class="ru" lang="ru">План обучения</span></h2>
     <div class="topbar-end">
       <div class="cs" data-component="CharacterSwitcher">
-        <button class="cs-btn" type="button" aria-expanded="false" aria-controls="cs-panel-2">
-          <span class="cs-stack" aria-hidden="true">
-            <span class="cs-portrait"><svg data-component="CharacterPortrait" data-portrait="Kadir Aylin" viewBox="0 0 28 28" style="--p-bg:#dbe4f0;--p-fg:#49658d"><circle class="p-bg" cx="14" cy="14" r="14"/><path class="p-fg" d="M4 28a10 10 0 0 1 20 0z"/><circle class="p-skin" cx="14" cy="10.5" r="4.5"/></svg></span>
-            <span class="cs-portrait"><svg data-component="CharacterPortrait" data-portrait="Saya Okamoto" viewBox="0 0 28 28" style="--p-bg:#dbf0eb;--p-fg:#498d7c"><circle class="p-bg" cx="14" cy="14" r="14"/><path class="p-fg" d="M4 28a10 10 0 0 1 20 0z"/><circle class="p-skin" cx="14" cy="10.5" r="4.5"/><path class="p-hair" d="M9.5 10.5a4.5 4.5 0 0 1 9 0v2H18a5.5 5.5 0 0 0-8 0z"/></svg></span>
-            <span class="cs-portrait"><svg data-component="CharacterPortrait" data-portrait="Marcus Vane" viewBox="0 0 28 28" style="--p-bg:#f0e3db;--p-fg:#8d6449"><circle class="p-bg" cx="14" cy="14" r="14"/><path class="p-fg" d="M4 28a10 10 0 0 1 20 0z"/><circle class="p-skin" cx="14" cy="10.5" r="4.5"/><path class="p-hair" d="M9.5 10.5a4.5 4.5 0 0 1 9 0v-1H18a5.5 5.5 0 0 0-8 0z"/></svg></span>
-            <span class="cs-overflow num" aria-hidden="true">+2</span>
-          </span>
+        <button class="cs-btn" type="button" aria-expanded="true" aria-haspopup="listbox" aria-controls="cs-panel-2"
+          aria-label="Active character: Kadir Aylin · Активный персонаж: Kadir Aylin">
+          <span class="cs-portrait" aria-hidden="true"><svg data-component="CharacterPortrait" data-portrait="Kadir Aylin" viewBox="0 0 28 28" style="--p-bg:#dbe4f0;--p-fg:#49658d"><circle class="p-bg" cx="14" cy="14" r="14"/><path class="p-fg" d="M4 28a10 10 0 0 1 20 0z"/><circle class="p-skin" cx="14" cy="10.5" r="4.5"/></svg></span>
           <span class="cs-label">
-            <span class="cs-scope cs-scope--subset"><span class="num">2 of 5</span> · <span class="ru" lang="ru">из 5</span></span>
-            <span class="cs-count num" aria-hidden="true">selected</span>
+            <span class="cs-active-name">Kadir Aylin</span>
+            <span class="cs-active-corp">KAD</span>
           </span>
           <svg class="cs-caret" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 5.5 7 9.5l4-4"/></svg>
         </button>
+        <div class="cs-panel" id="cs-panel-2" role="group" aria-label="Active character · Активный персонаж">
+          <!-- Same list after the click: Kadir Aylin is now the one active row and the trigger mirrors it. -->
+          <div class="cs-head">
+            <span class="cs-head-title">Active character · <span class="ru" lang="ru">Активный персонаж</span></span>
+          </div>
+          <div class="cs-list" role="radiogroup" aria-label="Characters · Персонажи">
+            <button class="cs-row" type="button" role="radio" aria-checked="false" data-component="CharacterRow"
+              data-character-active="false" data-character-state="synced">
+              <span class="cs-portrait" aria-hidden="true"><svg viewBox="0 0 32 32" style="--p-bg:#dbe4f0"><circle class="p-bg" cx="16" cy="16" r="16"/><use href="#i-users" x="7" y="7" width="18" height="18"/></svg></span>
+              <span class="cs-name">
+                <span class="cs-row-name">All characters · <span class="ru" lang="ru">Все персонажи</span></span>
+                <span class="cs-row-corp"><span class="num">5 of 5</span></span>
+              </span>
+              <span class="cs-active">active · <span lang="ru">выбран</span></span>
+            </button>
+            <button class="cs-row" type="button" role="radio" aria-checked="true" data-component="CharacterRow"
+              data-character-active="true" data-character-state="synced">
+              <span class="cs-portrait" aria-hidden="true"><svg data-component="CharacterPortrait" data-portrait="Kadir Aylin" viewBox="0 0 32 32" style="--p-bg:#dbe4f0;--p-fg:#49658d"><circle class="p-bg" cx="16" cy="16" r="16"/><path class="p-fg" d="M4 32a12 12 0 0 1 24 0z"/><circle class="p-skin" cx="16" cy="12" r="5"/><path class="p-hair" d="M11 12a5 5 0 0 1 10 0v1H20a6.5 6.5 0 0 0-9 0z"/></svg></span>
+              <span class="cs-name">
+                <span class="cs-row-name">Kadir Aylin</span>
+                <span class="cs-row-corp">KAD</span>
+              </span>
+              <span class="cs-row-state" title="synced · синхронизирован" aria-hidden="true"></span>
+              <span class="cs-active">active · <span lang="ru">выбран</span></span>
+            </button>
+            <button class="cs-row" type="button" role="radio" aria-checked="false" data-component="CharacterRow"
+              data-character-active="false" data-character-state="synced">
+              <span class="cs-portrait" aria-hidden="true"><svg data-component="CharacterPortrait" data-portrait="Saya Okamoto" viewBox="0 0 32 32" style="--p-bg:#dbf0eb;--p-fg:#498d7c"><circle class="p-bg" cx="16" cy="16" r="16"/><path class="p-fg" d="M4 32a12 12 0 0 1 24 0z"/><circle class="p-skin" cx="16" cy="12" r="5"/><path class="p-hair" d="M11 12a5 5 0 0 1 10 0v3H20a6.5 6.5 0 0 0-9 0z"/></svg></span>
+              <span class="cs-name">
+                <span class="cs-row-name">Saya Okamoto</span>
+                <span class="cs-row-corp">OKM</span>
+              </span>
+              <span class="cs-row-state" title="synced · синхронизирован" aria-hidden="true"></span>
+              <span class="cs-active">active · <span lang="ru">выбран</span></span>
+            </button>
+            <button class="cs-row" type="button" role="radio" aria-checked="false" data-component="CharacterRow"
+              data-character-active="false" data-character-state="stale">
+              <span class="cs-portrait" aria-hidden="true"><svg data-component="CharacterPortrait" data-portrait="Marcus Vane" viewBox="0 0 32 32" style="--p-bg:#f0e3db;--p-fg:#8d6449"><circle class="p-bg" cx="16" cy="16" r="16"/><path class="p-fg" d="M4 32a12 12 0 0 1 24 0z"/><circle class="p-skin" cx="16" cy="12" r="5"/><path class="p-hair" d="M11 12a5 5 0 0 1 10 0v-1H20a6.5 6.5 0 0 0-9 0z"/></svg></span>
+              <span class="cs-name">
+                <span class="cs-row-name">Marcus Vane</span>
+                <span class="cs-row-corp">VNA</span>
+              </span>
+              <span class="cs-row-state" title="stale · устарел" aria-hidden="true"></span>
+              <span class="cs-active">active · <span lang="ru">выбран</span></span>
+            </button>
+            <button class="cs-row" type="button" role="radio" aria-checked="false" data-component="CharacterRow"
+              data-character-active="false" data-character-state="synced">
+              <span class="cs-portrait" aria-hidden="true"><svg data-component="CharacterPortrait" data-portrait="Elin Drako" viewBox="0 0 32 32" style="--p-bg:#e3dbf0;--p-fg:#62498d"><circle class="p-bg" cx="16" cy="16" r="16"/><path class="p-fg" d="M4 32a12 12 0 0 1 24 0z"/><circle class="p-skin" cx="16" cy="12" r="5"/><path class="p-hair" d="M11 12a5 5 0 0 1 10 0v4H20a6.5 6.5 0 0 0-9 0z"/></svg></span>
+              <span class="cs-name">
+                <span class="cs-row-name">Elin Drako</span>
+                <span class="cs-row-corp">DRK</span>
+              </span>
+              <span class="cs-row-state" title="synced · синхронизирован" aria-hidden="true"></span>
+              <span class="cs-active">active · <span lang="ru">выбран</span></span>
+            </button>
+            <div class="cs-row" role="radio" aria-checked="false" aria-disabled="true" tabindex="-1"
+              data-component="CharacterRow" data-character-active="false" data-character-state="no-access">
+              <span class="cs-portrait" aria-hidden="true"><svg data-component="CharacterPortrait" data-portrait="Rei Tanaka" viewBox="0 0 32 32" style="--p-bg:#f0dbe3;--p-fg:#8d4962"><circle class="p-bg" cx="16" cy="16" r="16"/><path class="p-fg" d="M4 32a12 12 0 0 1 24 0z"/><circle class="p-skin" cx="16" cy="12" r="5"/><path class="p-hair" d="M11 12a5 5 0 0 1 10 0v2H20a6.5 6.5 0 0 0-9 0z"/></svg></span>
+              <span class="cs-name">
+                <span class="cs-row-name">Rei Tanaka</span>
+                <span class="cs-row-corp">TNK</span>
+              </span>
+              <span class="cs-row-state" title="no access · нет доступа" aria-hidden="true"></span>
+              <span class="cs-reason">missing scope <code>esi-skills.read_skills.v1</code></span>
+              <button class="cs-grant" type="button">grant</button>
+            </div>
+          </div>
+          <div class="cs-foot">
+            <button class="cs-add" type="button"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.5v9M1.5 6h9"/></svg>Add character · <span class="ru" lang="ru">Добавить персонажа</span></button>
+          </div>
+        </div>
+        <p class="cs-note">the plan below belongs to the active character · <span lang="ru">план ниже относится к выбранному персонажу</span></p>
       </div>
       <span class="sync" data-component="SyncBadge" role="status">
         <span class="sync-dot" aria-hidden="true"></span>
