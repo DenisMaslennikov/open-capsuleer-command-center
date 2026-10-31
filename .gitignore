@@ -14,3 +14,6 @@ data/
 .DS_Store
 .idea/
 .vscode/
+
+# design renders are local, not artifacts
+docs/design/**/*.png
