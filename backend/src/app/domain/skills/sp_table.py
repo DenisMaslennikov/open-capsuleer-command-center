@@ -17,10 +17,32 @@ Raises:
     InvalidSkillRankError: when ``rank`` is below 1.
 """
 
+from math import isqrt
+
 from app.domain.skills.errors import InvalidSkillLevelError, InvalidSkillRankError
 
 __all__ = ["accumulated_skill_sp"]
 
+_MIN_LEVEL = 0
+_MAX_LEVEL = 5
+_BASE_SP = 250
+
 
 def accumulated_skill_sp(*, rank: int, level: int) -> int:
-    raise NotImplementedError
+    if level < _MIN_LEVEL or level > _MAX_LEVEL:
+        raise InvalidSkillLevelError(f"level {level} outside {_MIN_LEVEL}..{_MAX_LEVEL}")
+    if rank < 1:
+        raise InvalidSkillRankError(f"rank {rank} below 1")
+    if level == 0:
+        return 0
+    # sqrt(32) ** (level - 1) == 32 ** whole * sqrt(32) ** half; keeping the
+    # math in integers avoids float rounding above the true value, which
+    # would make ceil overshoot by 1 (e.g. level 3 -> 8001 instead of 8000).
+    whole, half = divmod(level - 1, 2)
+    scaled = _BASE_SP * rank * 32**whole
+    if half == 0:
+        return scaled
+    # half == 1: scaled * sqrt(32) == 4 * scaled * sqrt(2), irrational, so
+    # the ceiling is floor + 1 and floor comes from the exact isqrt.
+    m = 4 * scaled
+    return isqrt(2 * m * m) + 1
