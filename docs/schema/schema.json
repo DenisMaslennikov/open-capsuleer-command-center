@@ -1,7 +1,7 @@
 {
  "project": "occc",
- "generated_at": "2026-10-31T12:43:49Z",
- "model": "~anthropic/claude-opus-latest",
+ "generated_at": "2026-10-31T15:21:29Z",
+ "model": "~z-ai/glm-latest",
  "validation": {
   "ok": true,
   "errors": [],
@@ -283,6 +283,14 @@
          "corporation_id"
         ],
         "unique": false
+       },
+       {
+        "name": "uq_characters_account_id_id",
+        "columns": [
+         "account_id",
+         "id"
+        ],
+        "unique": true
        }
       ],
       "constraints": [
@@ -3220,11 +3228,6 @@
         "nullable": true,
         "unique": false,
         "default": "",
-        "references": {
-         "table": "characters",
-         "column": "id",
-         "on_delete": "set null"
-        },
         "comment": "Персонаж, для которого считается план (characters.id, а не игровой character_id). NULL означает, что план не привязан или персонаж удалён из аккаунта, а сам план сохраняется."
        },
        {
@@ -3281,7 +3284,21 @@
        "unique (account_id, name)",
        "check (length(btrim(name)) > 0)"
       ],
-      "growth": "Маленькая таблица: единицы–десятки планов на аккаунт. Retention и партиционирование не нужны. Строки удаляются только пользователем или каскадом от accounts."
+      "growth": "Маленькая таблица: единицы–десятки планов на аккаунт. Retention и партиционирование не нужны. Строки удаляются только пользователем или каскадом от accounts.",
+      "foreign_keys": [
+       {
+        "columns": [
+         "account_id",
+         "character_id"
+        ],
+        "references_table": "characters",
+        "references_columns": [
+         "account_id",
+         "id"
+        ],
+        "on_delete": "cascade"
+       }
+      ]
      },
      {
       "name": "skill_plan_entries",
@@ -3508,7 +3525,7 @@
         "unique": false,
         "default": "",
         "references": null,
-        "comment": ""
+        "comment": "ESI quantity as reported: units > 0, -1 for a blueprint original, -2 for a blueprint copy; never 0"
        },
        {
         "name": "location_id",
@@ -3622,7 +3639,7 @@
        "unique (character_id, item_id)",
        "unique (corporation_id, item_id)",
        "check (location_type in ('station', 'solar_system', 'item', 'other'))",
-       "check (quantity > 0)"
+       "check (quantity <> 0)  -- ESI: -1 original blueprint, -2 blueprint copy, otherwise > 0"
       ],
       "growth": "Самая большая пользовательская таблица агрегата: корпоративные склады дают 10^5 строк и больше на владельца. Ключ upsert: (character_id, item_id) или (corporation_id, item_id). После upsert синк удаляет строки владельца, которых нет в ответе. Отдельного retention нет: размер ограничен текущим состоянием игры. Партиционирования нет (по соглашению оно только в market_data)."
      },
@@ -6106,7 +6123,7 @@
         "unique": false,
         "default": "",
         "references": null,
-        "comment": "station_id или structure_id; null — агрегат по всему региону"
+        "comment": "Station or structure inside region_id that refines the price; NULL means the region-level price. Not an alternative to region_id, so no CHECK is needed."
        },
        {
         "name": "best_buy_price",
@@ -7304,6 +7321,14 @@
          "event_kind"
         ],
         "unique": false
+       },
+       {
+        "name": "uq_notification_rules_account_id_id",
+        "columns": [
+         "account_id",
+         "id"
+        ],
+        "unique": true
        }
       ],
       "constraints": [],
@@ -7391,17 +7416,21 @@
         "comment": ""
        },
        {
+        "name": "account_id",
+        "type": "bigint",
+        "pk": false,
+        "nullable": false,
+        "unique": false,
+        "default": "",
+        "comment": "Tenant key: the rule and the character must belong to this account"
+       },
+       {
         "name": "notification_rule_id",
         "type": "bigint",
         "pk": false,
         "nullable": false,
         "unique": false,
         "default": "",
-        "references": {
-         "table": "notification_rules",
-         "column": "id",
-         "on_delete": "cascade"
-        },
         "comment": ""
        },
        {
@@ -7411,11 +7440,6 @@
         "nullable": false,
         "unique": false,
         "default": "",
-        "references": {
-         "table": "characters",
-         "column": "id",
-         "on_delete": "cascade"
-        },
         "comment": "FK на characters.id (наша строка), а не игровой character_id"
        },
        {
@@ -7441,7 +7465,33 @@
       "constraints": [
        "unique (notification_rule_id, character_id)"
       ],
-      "growth": "Неизменяемые строки; updated_at не нужен"
+      "growth": "Неизменяемые строки; updated_at не нужен",
+      "foreign_keys": [
+       {
+        "columns": [
+         "account_id",
+         "notification_rule_id"
+        ],
+        "references_table": "notification_rules",
+        "references_columns": [
+         "account_id",
+         "id"
+        ],
+        "on_delete": "cascade"
+       },
+       {
+        "columns": [
+         "account_id",
+         "character_id"
+        ],
+        "references_table": "characters",
+        "references_columns": [
+         "account_id",
+         "id"
+        ],
+        "on_delete": "cascade"
+       }
+      ]
      },
      {
       "name": "notification_events",
@@ -7478,11 +7528,6 @@
         "nullable": true,
         "unique": false,
         "default": "",
-        "references": {
-         "table": "characters",
-         "column": "id",
-         "on_delete": "cascade"
-        },
         "comment": "Персонаж-источник события, по нему фильтруют notification_rule_characters. NULL — событие корпоративного ордера или работы без привязки к персонажу; оно подходит только правилам с all_characters = true"
        },
        {
@@ -7577,7 +7622,21 @@
        "unique (account_id, dedup_key)",
        "ix_notification_events_unmatched — частичный индекс: where matched_at is null"
       ],
-      "growth": "Большая таблица. Вставка через insert ... on conflict (account_id, dedup_key) do nothing: повтор события не создаётся. Retention 90 дней по created_at задачей sync, доставки удаляются каскадом. Без партиционирования"
+      "growth": "Большая таблица. Вставка через insert ... on conflict (account_id, dedup_key) do nothing: повтор события не создаётся. Retention 90 дней по created_at задачей sync, доставки удаляются каскадом. Без партиционирования",
+      "foreign_keys": [
+       {
+        "columns": [
+         "account_id",
+         "character_id"
+        ],
+        "references_table": "characters",
+        "references_columns": [
+         "account_id",
+         "id"
+        ],
+        "on_delete": "cascade"
+       }
+      ]
      },
      {
       "name": "notification_deliveries",
@@ -7936,24 +7995,24 @@
    }
   ],
   "conventions": [
-   "PK пользовательских и кэш-таблиц: id bigint generated always as identity; SDE-таблицы используют игровой id как PK",
-   "Игровые идентификаторы (type_id, character_id, corporation_id, structure_id, alliance_id, eve_*_id) — bigint без FK",
-   "FK между нашими таблицами: <entity>_id, ON DELETE CASCADE, если в relations не сказано иное",
-   "Пользовательские таблицы не ссылаются на SDE по FK: реимпорт SDE не должен ломать пользовательские строки",
-   "Деньги — numeric(20,2); количества и SP — numeric(20,0) или bigint; float запрещён",
-   "Время — timestamptz UTC; created_at и updated_at not null default now()",
-   "Владелец данных — characters.id или corporations.id; две nullable FK и CHECK num_nonnulls(...)=1",
-   "Полиморфный entity_id, EAV и универсальная колонка attributes запрещены",
-   "JSONB разрешён только в esi_responses.body и notification_events.payload",
-   "Каждая синхронизируемая таблица имеет уникальный ключ под upsert: владелец + игровой id",
-   "Синхронизация идемпотентна: upsert по ключу, затем удаление отсутствующих в ответе строк владельца",
-   "Имена из SDE хранятся колонками name_en и name_ru; переводы отдельными таблицами не выносятся",
-   "Секреты (refresh-токены, вебхуки, номера) — bytea с шифротекстом, колонка с суффиксом _encrypted",
-   "Корпоративные данные хранятся отдельно в каждом аккаунте (corporations.account_id), а не в общих строках",
-   "Отсутствие доступа — строка в sync_states со skip_reason, а не отсутствие строки",
-   "Большие таблицы: retention через задачу sync; партиционирование по observed_at или date только в market_data",
-   "schema_gate сверяет metadata с контрактом: незадекларированная таблица или колонка — падение",
-   "Реестр таблиц (s3-t4) берёт lifetime из агрегата; для user-таблиц путь до accounts.id обязателен"
+   "Primary keys of our tables are `id bigint generated always as identity`; SDE tables are keyed by the game id.",
+   "Game identifiers inside user and cache tables (`type_id`, `character_id`, `corporation_id`, `structure_id`, `alliance_id`, `eve_*_id`) are `bigint` WITHOUT a foreign key: a reimport of static data must not lock or rewrite user rows.",
+   "Foreign keys INSIDE the SDE aggregate are allowed and required (`skills.type_id -> types.id`); a foreign key FROM a user or cache table INTO `sde` is forbidden.",
+   "Foreign keys between our own tables use `<entity>_id` and `ON DELETE CASCADE` unless the relation says otherwise.",
+   "Money is `numeric(20,2)`; quantities and skill points are `numeric(20,0)` or `bigint`; floating point is forbidden for money, quantity and price.",
+   "Timestamps are `timestamptz` in UTC. `created_at` on every table; `updated_at` on tables whose rows mutate.",
+   "Ownership has exactly three shapes: account-owned (`account_id`), character-owned (`character_id`), corporation-owned (`corporation_id`); the last two are nullable pairs guarded by `CHECK num_nonnulls(...) = 1`.",
+   "A row owned by a character inside an account context carries both `account_id` and `character_id`, and the character must belong to that account: composite foreign key `(account_id, character_id) -> characters (account_id, id)`.",
+   "Polymorphic `entity_id`, EAV tables and a universal `attributes` column are forbidden.",
+   "`jsonb` is allowed only in `esi_responses.body` and `notification_events.payload`.",
+   "Every synchronised table has a unique key for upsert: owner plus game id.",
+   "Synchronisation is idempotent: upsert by that key, then delete the owner's rows absent from the response.",
+   "SDE names are stored in `name_en` and `name_ru` columns; translations are not split into separate tables.",
+   "Secrets (refresh tokens, webhooks, phone numbers) are `bytea` columns named `*_encrypted`.",
+   "Corporate data is stored per account (`corporations.account_id`), never in shared rows.",
+   "Missing access is a row in `sync_states` with `skip_reason`, not a missing row.",
+   "Large tables: retention through the sync task; time partitioning only in `market_data`.",
+   "`schema_gate` compares SQLAlchemy metadata with the contract: an undeclared table or column fails the build."
   ],
   "enums": [
    {

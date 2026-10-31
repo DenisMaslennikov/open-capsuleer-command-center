@@ -49,22 +49,27 @@ Lifetime: `user` rows die with the account, `reference` rows come from the stati
 ## Conventions the contract encodes
 
 - Primary keys are `bigint identity` for our tables; SDE tables use the game id as the key.
-- Game identifiers (`type_id`, `character_id`, `corporation_id`, `structure_id`, `alliance_id`,
-  `eve_*_id`) are `bigint` without a foreign key: a reimport of static data must never lock or
-  rewrite user rows, so user tables do not reference SDE by foreign key at all.
-- Ownership is two nullable foreign keys plus `CHECK num_nonnulls(...) = 1`; a polymorphic
-  `entity_id`, EAV tables and a universal `attributes` column are banned.
+- Game identifiers inside user and cache tables (`type_id`, `character_id`, `corporation_id`,
+  `structure_id`, `alliance_id`) are `bigint` without a foreign key: a reimport of static data must
+  never lock or rewrite user rows. Foreign keys **inside** the SDE aggregate are allowed and
+  required.
+- Ownership has three shapes: account-owned, character-owned, corporation-owned; the last two are
+  nullable pairs guarded by `CHECK num_nonnulls(...) = 1`. Where a row carries both an account and a
+  character, the character must belong to that account — a composite foreign key
+  `(account_id, character_id) -> characters (account_id, id)`.
 - Money is `numeric(20,2)`, quantities and skill points are `numeric(20,0)` or `bigint`; floating
   point is banned for both.
-- Time is `timestamptz` in UTC.
-- `jsonb` is allowed only for opaque external payloads (`esi_responses.body`,
-  `notification_events.payload`).
-- Secrets (refresh tokens, webhooks, phone numbers) are `bytea` columns named `*_encrypted`.
+- Time is `timestamptz` in UTC: `created_at` on every table, `updated_at` on mutable rows.
+- `jsonb` only for opaque external payloads (`esi_responses.body`, `notification_events.payload`).
+- Secrets are `bytea` columns named `*_encrypted`.
 - Every synchronised table has a unique key for upsert (owner plus game id); synchronisation is
-  idempotent: upsert, then delete the owner's rows that the response no longer contains.
-- Missing access (a scope or a corporation role) is a row in `sync_states` with a `skip_reason`,
-  not a missing row: otherwise "no access" is indistinguishable from "no data".
-- Corporate data is stored per account (`corporations.account_id`), not in shared rows.
+  idempotent: upsert, then delete the owner's rows the response no longer contains.
+- Missing access is a row in `sync_states` with a `skip_reason`, not a missing row.
+- Corporate data is stored per account (`corporations.account_id`), never in shared rows.
+- Quantities keep ESI's own encoding: `assets.quantity` is `-1` for a blueprint original, `-2` for a
+  blueprint copy, positive for units, and never zero.
+- Market prices: `location_id` refines `region_id` (a station or structure inside the region), it is
+  not an alternative to it, so the pair needs no exclusivity check.
 - Partitioning applies only to `market_data`, by time.
 
 ## Diagram
@@ -83,8 +88,18 @@ for reading only — the contract and the migrations are the source of truth.
    banned because it silences a conflict instead of resolving it.
 4. Two tasks never own the same table; parallel work is allowed only on disjoint table sets.
 
-## Known deviations
+## Enforcement
 
-- Descriptive strings in `schema.json` (`purpose`, `comment`, `growth`) are in Russian, while the
-  repository documents in English. Structural fields are language-neutral. Regenerating the
-  contract with English descriptions is a follow-up, not a blocker.
+`backend/src/app/db/schema_gate.py` compares SQLAlchemy metadata with `schema.json` and fails the
+build on an undeclared table or column, a type or nullability mismatch, a forbidden type, a foreign
+key that does not resolve or points into `sde` from a user table, a model living outside its
+aggregate module, and a user table that does not reach `accounts` by cascading foreign keys.
+
+```
+make schema-gate
+```
+
+It runs in CI on every pull request. The reverse check (declared but not implemented) fails only for
+aggregates whose `dbhelpers` module already exists, otherwise the gate would be red before the first
+table lands. `alembic heads` and the autogenerate diff join the gate in the first schema task, when
+there is something to compare.

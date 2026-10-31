@@ -21,6 +21,10 @@ jobs:
         working-directory: backend
       - run: uv run pytest
         working-directory: backend
+      - run: uv run python -m app.db.schema_gate --contract ../docs/schema/schema.json
+        working-directory: backend
+        env:
+          PYTHONPATH: src
 
   frontend:
     runs-on: ubuntu-latest

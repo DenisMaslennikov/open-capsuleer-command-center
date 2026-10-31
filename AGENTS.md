@@ -24,6 +24,7 @@ make e2e       # Playwright against the running stack
 make migrate   # alembic upgrade head
 make sdk       # regenerate frontend API types from the backend OpenAPI
 make sde       # download and import the current static data export
+make schema-gate # compare models with the schema contract
 ```
 
 ## Layout

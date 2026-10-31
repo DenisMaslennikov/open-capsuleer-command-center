@@ -197,6 +197,7 @@ Table "characters" {
   "created_at" timestamptz [not null, default: `now()`]
   "updated_at" timestamptz [not null, default: `now()`]
   indexes { ("account_id", "corporation_id") [name: 'ix_characters_account_corporation'] }
+  indexes { ("account_id", "id") [unique, name: 'uq_characters_account_id_id'] }
   Note: 'Персонаж EVE, привязанный к аккаунту. Персонаж принадлежит не более чем одному аккаунту.'
 }
 
@@ -583,7 +584,7 @@ Table "assets" {
   "corporation_id" bigint [note: 'Владелец-корпорация (наш corporations.id, не игровой id).']
   "item_id" bigint [not null, note: 'Игровой item_id из ESI. Уникален в пределах владельца.']
   "type_id" bigint [not null, note: 'Игровой type_id. FK на SDE types нет по соглашению.']
-  "quantity" bigint [not null]
+  "quantity" bigint [not null, note: 'ESI quantity as reported: units > 0, -1 for a blueprint original, -2 for a blueprint copy; never 0']
   "location_id" bigint [not null, note: 'Непосредственная локация из ESI: станция, структура, система или item_id родительского контейнера/корабля.']
   "location_type" varchar(16) [not null, note: 'Значение location_type из ESI: station, solar_system, item, other.']
   "location_flag" varchar(64) [not null, note: 'Значение location_flag из ESI как есть (Hangar, CorpSAG1..CorpSAG7, Cargo, слоты и т.п.).']
@@ -776,7 +777,7 @@ Table "production_plan_nodes" {
   "time_efficiency" smallint [note: 'TE, принятый в расчёте узла; только при source = build']
   "created_at" timestamptz [not null, default: `now()`]
   "updated_at" timestamptz [not null, default: `now()`]
-  indexes { ("production_plan_id", "type_id") [name: 'ux_production_plan_nodes_root'] }
+  indexes { ("production_plan_id", "type_id") [unique, name: 'ux_production_plan_nodes_root'] }
   indexes { ("parent_node_id") [name: 'ix_production_plan_nodes_parent'] }
   Note: 'Дерево декомпозиции плана на компоненты с выбранным источником каждого узла'
 }
@@ -875,7 +876,7 @@ Table "market_prices" {
   "id" bigint [pk, not null, increment]
   "type_id" bigint [not null, note: 'Игровой id типа, без FK на SDE']
   "region_id" bigint [not null]
-  "location_id" bigint [note: 'station_id или structure_id; null — агрегат по всему региону']
+  "location_id" bigint [note: 'Station or structure inside region_id that refines the price; NULL means the region-level price. Not an alternative to region_id, so no CHECK is needed.']
   "best_buy_price" numeric(20,2) [note: 'Максимальная цена buy-ордера; null, если buy-ордеров нет']
   "best_sell_price" numeric(20,2) [note: 'Минимальная цена sell-ордера; null, если sell-ордеров нет']
   "buy_volume" bigint [not null, default: `0`, note: 'Сумма volume_remain всех buy-ордеров']
@@ -942,7 +943,7 @@ Table "killmail_participants" {
   "updated_at" timestamptz [not null, default: `now()`]
   indexes { ("ship_type_id") [name: 'ix_killmail_participants_ship_type'] }
   indexes { ("character_id") [name: 'ix_killmail_participants_character'] }
-  indexes { ("killmail_id") [name: 'ux_killmail_participants_victim'] }
+  indexes { ("killmail_id") [unique, name: 'ux_killmail_participants_victim'] }
   Note: 'Жертва и атакующие killmail: кто, в какой корпорации и альянсе, на чём, чем стрелял, сколько урона'
 }
 
@@ -1011,6 +1012,7 @@ Table "notification_rules" {
   "created_at" timestamptz [not null, default: `now()`]
   "updated_at" timestamptz [not null, default: `now()`]
   indexes { ("account_id", "event_kind") [name: 'ix_notification_rules_account_kind'] }
+  indexes { ("account_id", "id") [unique, name: 'uq_notification_rules_account_id_id'] }
   Note: 'Правило подписки: какой вид события по каким персонажам аккаунта отправлять'
 }
 
@@ -1025,6 +1027,7 @@ Table "notification_rule_recipients" {
 
 Table "notification_rule_characters" {
   "id" bigint [pk, not null, increment]
+  "account_id" bigint [not null, note: 'Tenant key: the rule and the character must belong to this account']
   "notification_rule_id" bigint [not null]
   "character_id" bigint [not null, note: 'FK на characters.id (наша строка), а не игровой character_id']
   "created_at" timestamptz [not null, default: `now()`]
@@ -1118,7 +1121,7 @@ Ref: "character_implants"."character_id" > "characters"."id" [delete: cascade]
 Ref: "jump_clones"."character_id" > "characters"."id" [delete: cascade]
 Ref: "jump_clone_implants"."jump_clone_id" > "jump_clones"."id" [delete: cascade]
 Ref: "skill_plans"."account_id" > "accounts"."id" [delete: cascade]
-Ref: "skill_plans"."character_id" > "characters"."id" [delete: set null]
+Ref: "skill_plans".("account_id", "character_id") > "characters".("account_id", "id") [delete: cascade]
 Ref: "skill_plan_entries"."skill_plan_id" > "skill_plans"."id" [delete: cascade]
 Ref: "assets"."character_id" > "characters"."id" [delete: cascade]
 Ref: "assets"."corporation_id" > "corporations"."id" [delete: cascade]
@@ -1157,10 +1160,10 @@ Ref: "push_subscriptions"."account_id" > "accounts"."id" [delete: cascade]
 Ref: "notification_rules"."account_id" > "accounts"."id" [delete: cascade]
 Ref: "notification_rule_recipients"."notification_rule_id" > "notification_rules"."id" [delete: cascade]
 Ref: "notification_rule_recipients"."notification_recipient_id" > "notification_recipients"."id" [delete: cascade]
-Ref: "notification_rule_characters"."notification_rule_id" > "notification_rules"."id" [delete: cascade]
-Ref: "notification_rule_characters"."character_id" > "characters"."id" [delete: cascade]
+Ref: "notification_rule_characters".("account_id", "notification_rule_id") > "notification_rules".("account_id", "id") [delete: cascade]
+Ref: "notification_rule_characters".("account_id", "character_id") > "characters".("account_id", "id") [delete: cascade]
 Ref: "notification_events"."account_id" > "accounts"."id" [delete: cascade]
-Ref: "notification_events"."character_id" > "characters"."id" [delete: cascade]
+Ref: "notification_events".("account_id", "character_id") > "characters".("account_id", "id") [delete: cascade]
 Ref: "notification_deliveries"."notification_event_id" > "notification_events"."id" [delete: cascade]
 Ref: "notification_deliveries"."notification_recipient_id" > "notification_recipients"."id" [delete: cascade]
 Ref: "esi_responses"."character_id" > "characters"."id" [delete: cascade]

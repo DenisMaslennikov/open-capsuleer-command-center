@@ -17,9 +17,11 @@ SQL in `dbhelpers/`.
 ## Rules the contract encodes
 
 - `bigint identity` primary keys for our tables; SDE tables are keyed by the game id.
-- Game ids (`type_id`, `character_id`, `corporation_id`, `structure_id`, `alliance_id`) are `bigint`
-  without a foreign key, and user tables never reference SDE tables by foreign key: reimporting
-  static data must not lock or rewrite user rows.
+- Game ids (`type_id`, `character_id`, `corporation_id`, `structure_id`, `alliance_id`) inside user
+  and cache tables are `bigint` without a foreign key: reimporting static data must not lock or
+  rewrite user rows. Foreign keys inside the SDE aggregate are allowed and required.
+- Where one row carries an account and a character, the character must belong to that account:
+  composite foreign key `(account_id, character_id) -> characters (account_id, id)`.
 - Ownership of a row is two nullable foreign keys plus `CHECK num_nonnulls(...) = 1`. No polymorphic
   `entity_id`, no EAV, no universal `attributes` column.
 - Money `numeric(20,2)`; quantities and skill points `numeric(20,0)` or `bigint`. Float is banned
@@ -43,6 +45,7 @@ SQL in `dbhelpers/`.
 
 ## Holds
 
+- `make schema-gate` is green: models match `docs/schema/schema.json`.
 - `alembic heads` returns exactly one head, and its parent is the head recorded when the task was
   created.
 - The models match the contract table by table, column by column.
