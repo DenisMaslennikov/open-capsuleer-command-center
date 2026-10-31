@@ -14,3 +14,6 @@ data/
 .DS_Store
 .idea/
 .vscode/
+
+# cascade planning artefact, not a repository file
+plan.json
