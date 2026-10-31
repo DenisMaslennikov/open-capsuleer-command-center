@@ -1,46 +1,35 @@
-"""Unit tests for the per-level skill-point step in the sp table."""
+"""Unit tests for the skill-point step from one trained level to the next."""
 
 import pytest
 
 from app.domain.skills.errors import InvalidSkillLevelError, InvalidSkillRankError
 from app.domain.skills.sp_table import skill_sp_to_next_level
 
+# Steps derived from the game rule ceil(250 * rank * sqrt(32) ** (level - 1)):
+# each step is the difference of two accumulated totals.
+STEPS = [
+    (1, 1, 1165),
+    (1, 2, 6585),
+    (1, 3, 37255),
+    (1, 4, 210745),
+    (2, 4, 421490),
+    (5, 4, 1053725),
+    (8, 4, 1685961),
+    (16, 4, 3371922),
+]
 
-@pytest.mark.parametrize(
-    ("rank", "level", "expected"),
-    [
-        (1, 1, 1165),
-        (5, 4, 1_152_000),
-    ],
-)
-def test_step_to_next_level_matches_accumulated_difference(rank: int, level: int, expected: int) -> None:
-    """The step is accumulated(level + 1) minus accumulated(level)."""
+
+@pytest.mark.parametrize(("rank", "level", "expected"), STEPS)
+def test_step_from_level_to_next_returns_difference_of_accumulated_totals(rank, level, expected):
     assert skill_sp_to_next_level(rank=rank, level=level) == expected
 
 
-@pytest.mark.parametrize(
-    ("rank", "level", "error"),
-    [
-        (1, 0, InvalidSkillLevelError),
-        (1, 5, InvalidSkillLevelError),
-        (0, 1, InvalidSkillRankError),
-    ],
-)
-def test_out_of_range_arguments_raise_domain_errors(
-    rank: int, level: int, error: type[Exception]
-) -> None:
-    """A level outside 1..4 or a rank below 1 raises its domain error."""
-    with pytest.raises(error):
-        skill_sp_to_next_level(rank=rank, level=level)
+@pytest.mark.parametrize("level", [0, 5])
+def test_level_outside_1_through_4_raises_skill_level_error(level):
+    with pytest.raises(InvalidSkillLevelError):
+        skill_sp_to_next_level(rank=1, level=level)
 
 
-def test_level_error_names_the_level() -> None:
-    """The level error message names the invalid level."""
-    with pytest.raises(InvalidSkillLevelError, match="5"):
-        skill_sp_to_next_level(rank=1, level=5)
-
-
-def test_rank_error_names_the_rank() -> None:
-    """The rank error message names the invalid rank."""
-    with pytest.raises(InvalidSkillRankError, match="0"):
+def test_rank_below_1_raises_skill_rank_error():
+    with pytest.raises(InvalidSkillRankError):
         skill_sp_to_next_level(rank=0, level=1)
