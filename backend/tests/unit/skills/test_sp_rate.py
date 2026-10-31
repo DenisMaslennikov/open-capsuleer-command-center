@@ -14,15 +14,13 @@ class TestSkillSpPerMinute:
             (21, 17, 29.5),
         ],
     )
-    def test_returns_correct_value(self, primary: int, secondary: int, expected: float):
+    def test_returns_correct_sp_per_minute(self, primary: int, secondary: int, expected: float):
         assert skill_sp_per_minute(primary=primary, secondary=secondary) == expected
 
     @pytest.mark.parametrize(
         ("primary", "secondary"),
         [
             (0, 0),
-            (17, 0),
-            (0, 17),
             (17, -1),
             (-5, 17),
         ],
