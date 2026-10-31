@@ -23,7 +23,7 @@ COPY . .
 
 FROM base AS dev
 RUN uv sync --frozen
-CMD ["uv", "run", "uvicorn", "app.main:app", "--app-dir", "src", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uv", "run", "--frozen", "--no-sync", "uvicorn", "app.main:app", "--app-dir", "src", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
 FROM base AS runtime
 CMD ["uvicorn", "app.main:app", "--app-dir", "src", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
