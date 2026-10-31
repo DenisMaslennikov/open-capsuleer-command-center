@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OCCC · Skill plan · design s5-t1 (revision)</title>
+<style>
+:root{
+  --colorBgLayout:#f4f8fd;--colorBgNav:#eef4fc;--colorBgContainer:#ffffff;--colorSplit:#e2ecf8;
+  --colorText:#1f2328;--colorTextSecondary:#6b7280;--colorPrimary:#2f6fed;--colorPrimaryHover:#245cd0;
+  --colorSuccess:#2f9e44;--colorError:#e03131;--colorWarning:#e8a13a;
+  --colorStatusLearned:#2f9e44;--colorStatusQueued:#2f6fed;--colorStatusNext:#d98324;--colorStatusUnreachable:#8a94a6;
+  --spaceXxs:4px;--spaceXs:8px;--spaceSm:12px;--spaceMd:16px;--spaceLg:24px;--spaceXl:32px;
+  --radiusSm:4px;--radiusMd:8px;--radiusLg:12px;--shadowCard:0 1px 2px rgba(31,35,40,.06);
+  --fontFamily:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --fontSizeSm:12px;--fontSizeTable:13px;--fontSizeMd:14px;--fontSizeXl:20px;
+  --layoutTopBarHeight:56px;--layoutNavWidth:232px;--layoutNavCollapsedWidth:64px;--layoutTreeWidth:320px;
+  --iconSize:18px;--motionBase:180ms;
+}
+*{box-sizing:border-box}
+body{margin:0;padding:var(--spaceLg);background:var(--colorBgLayout);color:var(--colorText);font:400 var(--fontSizeMd)/1.45 var(--fontFamily)}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible,.demo-focus{outline:2px solid var(--colorPrimary);outline-offset:2px}
+.sprite{position:absolute;width:0;height:0}
+.ic{width:var(--iconSize);height:var(--iconSize);flex:none;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.ru{color:var(--colorTextSecondary);font-size:var(--fontSizeSm);font-weight:400}
+.num{font-family:var(--fontFamilyMono);font-variant-numeric:tabular-nums;letter-spacing:0}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* New token (see README "Tokens to add") */
+:root{--fontFamilyMono:'JetBrains Mono',ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace}
+
+/* Dark theme is the default (theme file). Values are the dark map of the same token names. */
+body[data-theme="dark"]{
+  --colorBgLayout:#0f141b;--colorBgNav:#131a23;--colorBgContainer:#18202b;--colorSplit:#263142;
+  --colorText:#e6ebf2;--colorTextSecondary:#9aa5b5;--colorPrimary:#5b8ff9;--colorPrimaryHover:#7aa5fa;
+  --colorSuccess:#51cf66;--colorError:#ff6b6b;--colorWarning:#f0b55a;
+  --colorStatusLearned:#51cf66;--colorStatusQueued:#5b8ff9;--colorStatusNext:#f0a04b;--colorStatusUnreachable:#6c7689;
+  --shadowCard:0 1px 2px rgba(0,0,0,.4);
+}
+
+/* ---------- page frame ---------- */
+.page-title{margin:0 0 var(--spaceXs);font-size:var(--fontSizeXl);font-weight:600}
+.page-lead{margin:0 0 var(--spaceLg);color:var(--colorTextSecondary)}
+.section-title{margin:var(--spaceXl) 0 var(--spaceMd);font-size:var(--fontSizeMd);font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--colorTextSecondary)}
+
+.app{display:grid;grid-template-columns:var(--layoutNavWidth) 1fr;grid-template-rows:var(--layoutTopBarHeight) 1fr;min-height:720px;border:1px solid var(--colorSplit);border-radius:var(--radiusLg);overflow:hidden;background:var(--colorBgLayout)}
+
+/* TopBar */
+.topbar{grid-column:1/-1;display:flex;align-items:center;gap:var(--spaceMd);padding:0 var(--spaceLg);background:var(--colorBgContainer);border-bottom:1px solid var(--colorSplit)}
+.brand{font-weight:700;letter-spacing:.06em}
+.topbar .spacer{flex:1}
+.char-switch{display:flex;align-items:center;gap:var(--spaceXs);padding:var(--spaceXxs) var(--spaceSm);border:1px solid var(--colorSplit);border-radius:var(--radiusMd);background:transparent}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--colorSplit);display:grid;place-items:center;font-size:var(--fontSizeSm);font-weight:600}
+
+/* SideNav */
+.nav{background:var(--colorBgNav);border-right:1px solid var(--colorSplit);padding:var(--spaceMd) var(--spaceXs);display:flex;flex-direction:column;gap:var(--spaceXxs)}
+.nav a{display:flex;align-items:center;gap:var(--spaceSm);padding:var(--spaceXs) var(--spaceSm);border-radius:var(--radiusMd);color:var(--colorTextSecondary);text-decoration:none;transition:background var(--motionBase)}
+.nav a:hover{background:var(--colorBgContainer);color:var(--colorText)}
+.nav a[aria-current="page"]{background:var(--colorBgContainer);color:var(--colorPrimary);font-weight:600}
+
+/* Main split */
+.main{display:grid;grid-template-columns:var(--layoutTreeWidth) 1fr;min-width:0}
+
+/* SkillTree */
+.tree{border-right:1px solid var(--colorSplit);background:var(--colorBgContainer);display:flex;flex-direction:column;min-width:0}
+.tree-head{padding:var(--spaceMd);border-bottom:1px solid var(--colorSplit);display:flex;flex-direction:column;gap:var(--spaceXs)}
+.search{display:flex;align-items:center;gap:var(--spaceXs);padding:var(--spaceXs) var(--spaceSm);border:1px solid var(--colorSplit);border-radius:var(--radiusMd);background:var(--colorBgLayout);color:var(--colorTextSecondary)}
+.search input{flex:1;border:0;background:transparent;color:var(--colorText);font:inherit;min-width:0}
+.search input:focus{outline:none}
+.search:focus-within{outline:2px solid var(--colorPrimary);outline-offset:2px}
+.tree-body{overflow:auto;padding:var(--spaceXs)}
+.group-btn{width:100%;display:flex;align-items:center;gap:var(--spaceXs);padding:var(--spaceXs);border:0;background:transparent;border-radius:var(--radiusSm);text-align:left;font-weight:600}
+.group-btn:hover{background:var(--colorBgLayout)}
+.group-btn .ic{transition:transform var(--motionBase)}
+.group-btn[aria-expanded="false"] .ic.chev{transform:rotate(-90deg)}
+.group-count{margin-left:auto;color:var(--colorTextSecondary);font-weight:400;font-size:var(--fontSizeSm)}
+.skill-list{list-style:none;margin:0 0 var(--spaceXs);padding:0 0 0 var(--spaceLg)}
+.skill-row{display:flex;align-items:center;gap:var(--spaceXs);width:100%;padding:6px var(--spaceXs);border:0;background:transparent;border-radius:var(--radiusSm);text-align:left;font-size:var(--fontSizeTable)}
+.skill-row:hover{background:var(--colorBgLayout)}
+.skill-row[aria-pressed="true"]{background:var(--colorBgLayout);box-shadow:inset 2px 0 0 var(--colorPrimary)}
+.skill-row .name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.skill-row.unreachable .name{color:var(--colorTextSecondary)}
+
+/* LevelPips */
+.pips{display:inline-flex;gap:2px}
+.pip{width:8px;height:8px;border-radius:2px;border:1px solid var(--colorStatusUnreachable)}
+.pip.learned{background:var(--colorStatusLearned);border-color:var(--colorStatusLearned)}
+.pip.queued{background:var(--colorStatusQueued);border-color:var(--colorStatusQueued)}
+.pip.next{background:transparent;border-color:var(--colorStatusNext);border-width:2px}
+
+/* Plan area */
+.plan{padding:var(--spaceLg);display:flex;flex-direction:column;gap:var(--spaceMd);min-width:0}
+.plan-head{display:flex;align-items:flex-end;gap:var(--spaceMd);flex-wrap:wrap}
+.plan-head h2{margin:0;font-size:var(--fontSizeXl);font-weight:600}
+.plan-head .spacer{flex:1}
+
+.btn{display:inline-flex;align-items:center;gap:var(--spaceXs);padding:var(--spaceXs) var(--spaceMd);border-radius:var(--radiusMd);border:1px solid var(--colorSplit);background:var(--colorBgContainer);transition:background var(--motionBase),border-color var(--motionBase)}
+.btn:hover{border-color:var(--colorPrimary)}
+.btn-primary{background:var(--colorPrimary);border-color:var(--colorPrimary);color:#fff}
+.btn-primary:hover{background:var(--colorPrimaryHover);border-color:var(--colorPrimaryHover)}
+.btn-icon{padding:6px;border:1px solid transparent;background:transparent;border-radius:var(--radiusSm);color:var(--colorTextSecondary)}
+.btn-icon:hover{color:var(--colorText);border-color:var(--colorSplit)}
+.btn-icon[disabled]{opacity:.35;cursor:not-allowed}
+
+/* PlanSummary */
+.summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--spaceMd)}
+.stat{background:var(--colorBgContainer);border:1px solid var(--colorSplit);border-radius:var(--radiusLg);padding:var(--spaceMd);box-shadow:var(--shadowCard)}
+.stat dt{color:var(--colorTextSecondary);font-size:var(--fontSizeSm)}
+.stat dd{margin:var(--spaceXxs) 0 0;font-size:var(--fontSizeXl);font-weight:600}
+
+/* SkillPlanQueue */
+.card{background:var(--colorBgContainer);border:1px solid var(--colorSplit);border-radius:var(--radiusLg);box-shadow:var(--shadowCard);overflow:hidden}
+.queue{width:100%;border-collapse:collapse;font-size:var(--fontSizeTable)}
+.queue th{text-align:left;font-weight:600;color:var(--colorTextSecondary);font-size:var(--fontSizeSm);padding:var(--spaceSm) var(--spaceMd);border-bottom:1px solid var(--colorSplit);white-space:nowrap}
+.queue td{padding:var(--spaceSm) var(--spaceMd);border-bottom:1px solid var(--colorSplit);vertical-align:middle}
+.queue tr:last-child td{border-bottom:0}
+.queue .r{text-align:right}
+.queue tbody tr:hover{background:var(--colorBgLayout)}
+.queue .actions{display:flex;gap:2px;justify-content:flex-end}
+.lvl{font-family:var(--fontFamilyMono);font-weight:600}
+
+/* StatusBadge */
+.badge{display:inline-flex;align-items:center;gap:6px;padding:2px var(--spaceXs);border-radius:999px;font-size:var(--fontSizeSm);font-weight:600;border:1px solid currentColor;white-space:nowrap}
+.badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.badge.learned{color:var(--colorStatusLearned)}
+.badge.queued{color:var(--colorStatusQueued)}
+.badge.next{color:var(--colorStatusNext)}
+.badge.unreachable{color:var(--colorStatusUnreachable)}
+.badge.unreachable::before{background:transparent;border:1px solid currentColor}
+
+/* StaleBanner / states */
+.banner{display:flex;align-items:center;gap:var(--spaceSm);padding:var(--spaceSm) var(--spaceMd);border-radius:var(--radiusMd);border:1px solid var(--colorWarning);color:var(--colorText);background:var(--colorBgContainer)}
+.banner .ic{color:var(--colorWarning)}
+.banner .spacer{flex:1}
+.state{display:flex;flex-direction:column;align-items:center;text-align:center;gap:var(--spaceSm);padding:var(--spaceXl) var(--spaceLg)}
+.state .ic{width:32px;height:32px}
+.state h3{margin:0;font-size:var(--fontSizeMd);font-weight:600}
+.state p{margin:0;color:var(--colorTextSecondary);max-width:420px}
+.state.error .ic{color:var(--colorError)}
+.state.noaccess .ic{color:var(--colorWarning)}
+.state.empty .ic{color:var(--colorTextSecondary)}
+
+.skel{display:block;height:12px;border-radius:var(--radiusSm);background:var(--colorSplit);animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--spaceLg)}
+.gallery figure{margin:0}
+.gallery figcaption{margin-bottom:var(--spaceXs);font-size:var(--fontSizeSm);color:var(--colorTextSecondary);font-family:var(--fontFamilyMono)}
+.legend{display:flex;gap:var(--spaceMd);flex-wrap:wrap;font-size:var(--fontSizeSm);color:var(--colorTextSecondary)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+
+@media (max-width:1100px){.summary{grid-template-columns:repeat(2,minmax(0,1fr))}.gallery{grid-template-columns:1fr}}
+</style>
+</head>
+<body data-theme="dark">
+
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5"/><path d="M8 7h7"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5"/><path d="M6 11l6-6 6 6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M6 13l6 6 6-6"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9H4z"/></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 12h2"/></symbol>
+  <symbol id="i-tree" viewBox="0 0 24 24"><path d="M6 4v16M6 8h8M6 15h8"/><circle cx="17" cy="8" r="2"/><circle cx="17" cy="15" r="2"/></symbol>
+</svg>
+
+<h1 class="page-title">Skill plan · План навыков</h1>
+<p class="page-lead">Design s5-t1, revision. Default screen first, then every state of every data-bound component.</p>
+
+<!-- ================= DEFAULT SCREEN ================= -->
+<div class="app" data-component="AppShell">
+  <header class="topbar" data-component="TopBar">
+    <span class="brand">OCCC</span>
+    <span class="spacer"></span>
+    <button class="char-switch" data-component="CharacterSwitcher" aria-haspopup="listbox" aria-label="Switch character / Сменить персонажа">
+      <span class="avatar" aria-hidden="true">AV</span>
+      <span>Aria Volkova</span>
+      <svg class="ic" aria-hidden="true"><use href="#i-chev"/></svg>
+    </button>
+  </header>
+
+  <nav class="nav" data-component="SideNav" aria-label="Main / Основная навигация">
+    <a href="#"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg>Overview <span class="ru">Обзор</span></a>
+    <a href="#"><svg class="ic" aria-hidden="true"><use href="#i-wallet"/></svg>Wallet <span class="ru">Кошелёк</span></a>
+    <a href="#" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-tree"/></svg>Skill plan <span class="ru">План навыков</span></a>
+    <a href="#"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg>Assets <span class="ru">Имущество</span></a>
+  </nav>
+
+  <div class="main">
+    <aside class="tree" data-component="SkillTree" aria-label="Skill catalogue / Каталог навыков">
+      <div class="tree-head">
+        <label class="search" data-component="SearchField">
+          <svg class="ic" aria-hidden="true"><use href="#i-search"/></svg>
+          <span class="vh">Search skills / Поиск навыков</span>
+          <input type="search" placeholder="Search skills · Поиск навыков">
+        </label>
+        <div class="legend" data-component="StatusLegend">
+          <span><span class="pip learned" aria-hidden="true"></span>Learned · Изучено</span>
+          <span><span class="pip queued" aria-hidden="true"></span>Queued · В плане</span>
+          <span><span class="pip next" aria-hidden="true"></span>Next · Следующий</span>
+          <span><span class="pip" aria-hidden="true"></span>Unreachable · Недоступно</span>
+        </div>
+      </div>
+      <div class="tree-body">
+        <div data-component="SkillGroup">
+          <button class="group-btn" aria-expanded="true" aria-controls="g-gun">
+            <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>Gunnery <span class="ru">Стрельба</span>
+            <span class="group-count num">7 / 12</span>
+          </button>
+          <ul class="skill-list" id="g-gun">
+            <li><button class="skill-row" data-component="SkillRow" aria-pressed="false">
+              <span class="name">Gunnery</span>
+              <span class="pips" data-component="LevelPips" role="img" aria-label="Level 5 of 5 learned"><i class="pip learned"></i><i class="pip learned"></i><i class="pip learned"></i><i class="pip learned"></i><i class="pip learned"></i></span>
+            </button></li>
+            <li><button class="skill-row demo-focus" data-component="SkillRow" aria-pressed="true">
+              <span class="name">Large Hybrid Turret</span>
+              <span class="pips" data-component="LevelPips" role="img" aria-label="Level 3 learned, 4 next, 5 queued"><i class="pip learned"></i><i class="pip learned"></i><i class="pip learned"></i><i class="pip next"></i><i class="pip queued"></i></span>
+            </button></li>
+            <li><button class="skill-row" data-component="SkillRow" aria-pressed="false">
+              <span class="name">Surgical Strike</span>
+              <span class="pips" data-component="LevelPips" role="img" aria-label="Level 4 learned, 5 queued"><i class="pip learned"></i><i class="pip learned"></i><i class="pip learned"></i><i class="pip learned"></i><i class="pip queued"></i></span>
+            </button></li>
+            <li><button class="skill-row unreachable" data-component="SkillRow" aria-pressed="false">
+              <span class="name">Capital Hybrid Turret</span>
+              <span class="pips" data-component="LevelPips" role="img" aria-label="Unreachable: prerequisites missing"><i class="pip"></i><i class="pip"></i><i class="pip"></i><i class="pip"></i><i class="pip"></i></span>
+            </button></li>
+          </ul>
+        </div>
+        <div data-component="SkillGroup">
+          <button class="group-btn" aria-expanded="true" aria-controls="g-ship">
+            <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>Spaceship Command <span class="ru">Управление кораблями</span>
+            <span class="group-count num">9 / 31</span>
+          </button>
+          <ul class="skill-list" id="g-ship">
+            <li><button class="skill-row" data-component="SkillRow" aria-pressed="false">
+              <span class="name">Gallente Battleship</span>
+              <span class="pips" data-component="LevelPips" role="img" aria-label="Level 4 learned, 5 queued"><i class="pip learned"></i><i class="pip learned"></i><i class="pip learned"></i><i class="pip learned"></i><i class="pip queued"></i></span>
+            </button></li>
+            <li><button class="skill-row" data-component="SkillRow" aria-pressed="false">
+              <span class="name">Marauders</span>
+              <span class="pips" data-component="LevelPips" role="img" aria-label="Levels 1 to 2 queued"><i class="pip queued"></i><i class="pip queued"></i><i class="pip"></i><i class="pip"></i><i class="pip"></i></span>
+            </button></li>
+          </ul>
+        </div>
+        <div data-component="SkillGroup">
+          <button class="group-btn" aria-expanded="false" aria-controls="g-nav">
+            <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>Navigation <span class="ru">Навигация</span>
+            <span class="group-count num">11 / 14</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <section class="plan" aria-labelledby="plan-h">
+      <div class="plan-head">
+        <div>
+          <h2 id="plan-h">Marauder · Kronos</h2>
+          <span class="ru">План: Мародёр · Kronos</span>
+        </div>
+        <span class="spacer"></span>
+        <button class="btn" data-component="ImportPlanButton">Import <span class="ru">Импорт</span></button>
+        <button class="btn btn-primary" data-component="AddSkillButton"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Add skill <span class="ru" style="color:inherit">Добавить</span></button>
+      </div>
+
+      <div class="banner" data-component="StaleBanner" role="status">
+        <svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>
+        <span>Skills synced <b class="num">3 h 12 m</b> ago. <span class="ru">Навыки синхронизированы <span class="num">3 ч 12 м</span> назад.</span></span>
+        <span class="spacer"></span>
+        <button class="btn" data-component="RefreshButton"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg>Refresh <span class="ru">Обновить</span></button>
+      </div>
+
+      <dl class="summary" data-component="PlanSummary">
+        <div class="stat"><dt>Total time · Общее время</dt><dd class="num">38d 07h 41m</dd></div>
+        <div class="stat"><dt>Skill points · Очки навыков</dt><dd class="num">27 648 000</dd></div>
+        <div class="stat"><dt>Books to buy · Книги</dt><dd class="num">1 312 500 000 ISK</dd></div>
+        <div class="stat"><dt>Finishes · Завершение</dt><dd class="num">2026-12-09 18:22</dd></div>
+      </dl>
+
+      <div class="card" data-component="SkillPlanQueue">
+        <table class="queue">
+          <caption class="vh">Planned skills / Навыки в плане</caption>
+          <thead><tr>
+            <th scope="col" class="r">#</th>
+            <th scope="col">Skill · Навык</th>
+            <th scope="col">Level · Ур.</th>
+            <th scope="col">Status · Статус</th>
+            <th scope="col" class="r">SP · ОН</th>
+            <th scope="col" class="r">Duration · Длительность</th>
+            <th scope="col" class="r">Book · Книга</th>
+            <th scope="col" class="r"><span class="vh">Actions / Действия</span></th>
+          </tr></thead>
+          <tbody>
+            <tr data-component="PlanRow">
+              <td class="r num">1</td><td>Large Hybrid Turret</td><td class="lvl">IV</td>
+              <td><span class="badge next" data-component="StatusBadge">Next · Следующий</span></td>
+              <td class="r num">1 280 000</td><td class="r num">2d 11h 06m</td><td class="r num">—</td>
+              <td><div class="actions">
+                <button class="btn-icon" aria-label="Move up / Выше" disabled><svg class="ic" aria-hidden="true"><use href="#i-up"/></svg></button>
+                <button class="btn-icon" aria-label="Move down / Ниже"><svg class="ic" aria-hidden="true"><use href="#i-down"/></svg></button>
+                <button class="btn-icon" aria-label="Remove / Удалить"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
+              </div></td>
+            </tr>
+            <tr data-component="PlanRow">
+              <td class="r num">2</td><td>Gallente Battleship</td><td class="lvl">V</td>
+              <td><span class="badge queued" data-component="StatusBadge">Queued · В плане</span></td>
+              <td class="r num">6 144 000</td><td class="r num">11d 20h 15m</td><td class="r num">—</td>
+              <td><div class="actions">
+                <button class="btn-icon" aria-label="Move up / Выше"><svg class="ic" aria-hidden="true"><use href="#i-up"/></svg></button>
+                <button class="btn-icon demo-focus" aria-label="Move down / Ниже"><svg class="ic" aria-hidden="true"><use href="#i-down"/></svg></button>
+                <button class="btn-icon" aria-label="Remove / Удалить"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
+              </div></td>
+            </tr>
+            <tr data-component="PlanRow">
+              <td class="r num">3</td><td>Marauders</td><td class="lvl">I</td>
+              <td><span class="badge queued" data-component="StatusBadge">Queued · В плане</span></td>
+              <td class="r num">2 500</td><td class="r num">0d 00h 42m</td><td class="r num">1 250 000 000 ISK</td>
+              <td><div class="actions">
+                <button class="btn-icon" aria-label="Move up / Выше"><svg class="ic" aria-hidden="true"><use href="#i-up"/></svg></button>
+                <button class="btn-icon" aria-label="Move down / Ниже"><svg class="ic" aria-hidden="true"><use href="#i-down"/></svg></button>
+                <button class="btn-icon" aria-label="Remove / Удалить"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
+              </div></td>
+            </tr>
+            <tr data-component="PlanRow">
+              <td class="r num">4</td><td>Surgical Strike</td><td class="lvl">V</td>
+              <td><span class="badge queued" data-component="StatusBadge">Queued · В плане</span></td>
+              <td class="r num">1 536 000</td><td class="r num">5d 22h 37m</td><td class="r num">—</td>
+              <td><div class="actions">
+                <button class="btn-icon" aria-label="Move up / Выше"><svg class="ic" aria-hidden="true"><use href="#i-up"/></svg></button>
+                <button class="btn-icon" aria-label="Move down / Ниже"><svg class="ic" aria-hidden="true"><use href="#i-down"/></svg></button>
+                <button class="btn-icon" aria-label="Remove / Удалить"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
+              </div></td>
+            </tr>
+            <tr data-component="PlanRow">
+              <td class="r num">5</td><td>Capital Hybrid Turret</td><td class="lvl">I</td>
+              <td><span class="badge unreachable" data-component="StatusBadge">Unreachable · Недоступно</span></td>
+              <td class="r num">—</td><td class="r num">—</td><td class="r num">62 500 000 ISK</td>
+              <td><div class="actions">
+                <button class="btn-icon" aria-label="Move up / Выше"><svg class="ic" aria-hidden="true"><use href="#i-up"/></svg></button>
+                <button class="btn-icon" aria-label="Move down / Ниже" disabled><svg class="ic" aria-hidden="true"><use href="#i-down"/></svg></button>
+                <button class="btn-icon" aria-label="Remove / Удалить"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
+              </div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ================= STATES ================= -->
+<h2 class="section-title">States · Состояния</h2>
+<div class="gallery">
+
+  <figure>
+    <figcaption>SkillPlanQueue · loading</figcaption>
+    <div class="card" data-component="SkillPlanQueue" aria-busy="true">
+      <span class="vh" role="status">Loading plan… / Загрузка плана…</span>
+      <table class="queue" aria-hidden="true">
+        <thead><tr><th>#</th><th>Skill · Навык</th><th>Status · Статус</th><th class="r">Duration · Длительность</th></tr></thead>
+        <tbody>
+          <tr><td><span class="skel" style="width:16px"></span></td><td><span class="skel" style="width:160px"></span></td><td><span class="skel" style="width:80px"></span></td><td><span class="skel" style="width:90px;margin-left:auto"></span></td></tr>
+          <tr><td><span class="skel" style="width:16px"></span></td><td><span class="skel" style="width:120px"></span></td><td><span class="skel" style="width:80px"></span></td><td><span class="skel" style="width:90px;margin-left:auto"></span></td></tr>
+          <tr><td><span class="skel" style="width:16px"></span></td><td><span class="skel" style="width:190px"></span></td><td><span class="skel" style="width:80px"></span></td><td><span class="skel" style="width:90px;margin-left:auto"></span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </figure>
+
+  <figure>
+    <figcaption>SkillPlanQueue · empty</figcaption>
+    <div class="card" data-component="SkillPlanQueue">
+      <div class="state empty" data-component="EmptyState">
+        <svg class="ic" aria-hidden="true"><use href="#i-book"/></svg>
+        <h3>The plan is empty <span class="ru">· План пуст</span></h3>
+        <p>Pick a skill in the catalogue or import a plan.<br><span class="ru">Выберите навык в каталоге или импортируйте план.</span></p>
+        <button class="btn btn-primary"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Add skill · Добавить навык</button>
+      </div>
+    </div>
+  </figure>
+
+  <figure>
+    <figcaption>SkillPlanQueue · error</figcaption>
+    <div class="card" data-component="SkillPlanQueue">
+      <div class="state error" data-component="ErrorState" role="alert">
+        <svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg>
+        <h3>Could not load the plan <span class="ru">· Не удалось загрузить план</span></h3>
+        <p>ESI responded with 502. Your plan is safe; try again in a moment.<br><span class="ru">ESI вернул 502. План сохранён, повторите попытку позже.</span></p>
+        <button class="btn demo-focus"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg>Retry · Повторить</button>
+      </div>
+    </div>
+  </figure>
+
+  <figure>
+    <figcaption>SkillPlanQueue · no-access</figcaption>
+    <div class="card" data-component="SkillPlanQueue">
+      <div class="state noaccess" data-component="NoAccessState">
+        <svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg>
+        <h3>Skill access not granted <span class="ru">· Нет доступа к навыкам</span></h3>
+        <p>Scope <code class="num">esi-skills.read_skills.v1</code> is missing for this character.<br><span class="ru">Для персонажа не выдано разрешение на чтение навыков.</span></p>
+        <a class="btn btn-primary" href="#">Grant access · Выдать доступ</a>
+      </div>
+    </div>
+  </figure>
+
+  <figure>
+    <figcaption>StaleBanner · stale (sync older than 1 h)</figcaption>
+    <div class="banner" data-component="StaleBanner" role="status">
+      <svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>
+      <span>Skills synced <b class="num">1d 02h</b> ago. <span class="ru">Навыки синхронизированы <span class="num">1д 02ч</span> назад.</span></span>
+      <span class="spacer"></span>
+      <button class="btn"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg>Refresh · Обновить</button>
+    </div>
+  </figure>
+
+  <figure>
+    <figcaption>SkillTree · loading</figcaption>
+    <div class="tree card" data-component="SkillTree" aria-busy="true" style="padding:var(--spaceMd);gap:var(--spaceSm)">
+      <span class="vh" role="status">Loading skills… / Загрузка навыков…</span>
+      <span class="skel" style="width:60%"></span>
+      <span class="skel" style="width:80%;margin-left:var(--spaceLg)"></span>
+      <span class="skel" style="width:70%;margin-left:var(--spaceLg)"></span>
+      <span class="skel" style="width:55%"></span>
+      <span class="skel" style="width:75%;margin-left:var(--spaceLg)"></span>
+    </div>
+  </figure>
+
+  <figure>
+    <figcaption>SkillTree · empty (search without results)</figcaption>
+    <div class="tree card" data-component="SkillTree">
+      <div class="state empty" data-component="EmptyState">
+        <svg class="ic" aria-hidden="true"><use href="#i-search"/></svg>
+        <h3>No skills match “kronoss” <span class="ru">· Ничего не найдено</span></h3>
+        <button class="btn">Clear search · Сбросить поиск</button>
+      </div>
+    </div>
+  </figure>
+
+  <figure>
+    <figcaption>PlanSummary · loading</figcaption>
+    <dl class="summary" data-component="PlanSummary" aria-busy="true">
+      <div class="stat"><dt>Total time · Общее время</dt><dd><span class="skel" style="width:80%;height:20px"></span></dd></div>
+      <div class="stat"><dt>Skill points · Очки навыков</dt><dd><span class="skel" style="width:70%;height:20px"></span></dd></div>
+      <div class="stat"><dt>Books to buy · Книги</dt><dd><span class="skel" style="width:90%;height:20px"></span></dd></div>
+      <div class="stat"><dt>Finishes · Завершение</dt><dd><span class="skel" style="width:75%;height:20px"></span></dd></div>
+    </dl>
+  </figure>
+
+</div>
+</body>
+</html>
