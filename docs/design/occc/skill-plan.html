@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Skill Plan</title>
+  <style>
+    :root {
+      /* Color tokens */
+      --color-bg-layout: #f7f8fa;
+      --color-bg-container: #ffffff;
+      --color-border: #dde1e8;
+      --color-text: #1f2328;
+      --color-text-secondary: #6b7280;
+      --color-primary: #3b5bdb;
+      --color-primary-hover: #2f49b0;
+      --color-success: #2f9e44;
+      --color-error: #e03131;
+      --color-warning: #e8a13a;
+      --color-learned: #2f9e44;
+      --color-queued: #3b5bdb;
+      --color-next: #e8a13a;
+      --color-unreachable: #6b7280;
+      --color-no-access: #9ca3af;
+      --color-stale: #9ca3af;
+
+      /* Space tokens */
+      --space-xxs: 4px;
+      --space-xs: 8px;
+      --space-sm: 12px;
+      --space-md: 16px;
+      --space-lg: 24px;
+      --space-xl: 32px;
+      --space-xxl: 48px;
+
+      /* Radius tokens */
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+
+      /* Font tokens */
+      --font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      --font-size-sm: 12px;
+      --font-size-md: 14px;
+      --font-size-lg: 16px;
+      --font-size-xl: 20px;
+      --font-size-xxl: 28px;
+
+      /* Motion tokens */
+      --motion-fast: 120ms;
+      --motion-base: 180ms;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--color-bg-layout);
+      color: var(--color-text);
+      line-height: 1.5;
+    }
+
+    .screen {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: var(--space-md);
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-md) 0;
+      border-bottom: 1px solid var(--color-border);
+      margin-bottom: var(--space-lg);
+    }
+
+    .character-switcher {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .character-switcher select {
+      padding: var(--space-xs) var(--space-md);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border);
+      background-color: var(--color-bg-container);
+      color: var(--color-text);
+      font-family: var(--font-family);
+      cursor: pointer;
+    }
+
+    .sync-badge {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+      padding: var(--space-xs) var(--space-sm);
+      border-radius: var(--radius-sm);
+      background-color: var(--color-bg-container);
+      border: 1px solid var(--color-border);
+      font-size: var(--font-size-sm);
+    }
+
+    .sync-icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    .main-content {
+      display: flex;
+      flex: 1;
+      gap: var(--space-lg);
+    }
+
+    .left-column {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .right-column {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .panel {
+      background-color: var(--color-bg-container);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: var(--space-md);
+    }
+
+    .panel-header {
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+      margin-bottom: var(--space-md);
+      padding-bottom: var(--space-sm);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .skill-tree {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .skill-group {
+      padding: var(--space-sm);
+      border-radius: var(--radius-sm);
+      background-color: var(--color-bg-layout);
+      cursor: pointer;
+      transition: background-color var(--motion-base);
+    }
+
+    .skill-group:hover {
+      background-color: var(--color-bg-container);
+    }
+
+    .skill-group-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-xs);
+    }
+
+    .skill-group-name {
+      font-weight: 500;
+    }
+
+    .skill-progress {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+
+    .progress-bar {
+      flex: 1;
+      height: 8px;
+      background-color: var(--color-border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background-color: var(--color-primary);
+    }
+
+    .progress-text {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+    }
+
+    .skill-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      margin-left: var(--space-md);
+    }
+
+    .skill-item {
+      padding: var(--space-xs) var(--space-sm);
+      border-radius: var(--radius-sm);
+      background-color: var(--color-bg-layout);
+      cursor: pointer;
+      transition: background-color var(--motion-base);
+    }
+
+    .skill-item:hover {
+      background-color: var(--color-bg-container);
+    }
+
+    .skill-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .skill-name {
+      font-weight: 500;
+    }
+
+    .skill-level {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+    }
+
+    .plan-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .plan-row {
+      display: grid;
+      grid-template-columns: 1fr 60px 60px 80px 100px 80px;
+      align-items: center;
+      padding: var(--space-sm);
+      border-radius: var(--radius-sm);
+      background-color: var(--color-bg-layout);
+      transition: background-color var(--motion-base);
+    }
+
+    .plan-row:hover {
+      background-color: var(--color-bg-container);
+    }
+
+    .plan-cell {
+      font-size: var(--font-size-md);
+    }
+
+    .plan-cell.skill-name {
+      font-weight: 500;
+    }
+
+    .plan-cell.rank {
+      text-align: center;
+    }
+
+    .plan-cell.level {
+      text-align: center;
+    }
+
+    .plan-cell.sp-cost {
+      text-align: right;
+      font-family: monospace;
+    }
+
+    .plan-cell.time {
+      text-align: right;
+      font-family: monospace;
+    }
+
+    .plan-cell.status {
+      text-align: center;
+    }
+
+    .status-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .status-learned .status-indicator {
+      background-color: var(--color-learned);
+    }
+
+    .status-queued .status-indicator {
+      background-color: var(--color-queued);
+    }
+
+    .status-next .status-indicator {
+      background-color: var(--color-next);
+    }
+
+    .status-unreachable .status-indicator {
+      background-color: var(--color-unreachable);
+    }
+
+    .totals {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-md);
+      margin-top: var(--space-md);
+    }
+
+    .total-card {
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      background-color: var(--color-bg-container);
+      border: 1px solid var(--color-border);
+    }
+
+    .total-label {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-xs);
+    }
+
+    .total-value {
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+      font-family: monospace;
+    }
+
+    .actions {
+      display: flex;
+      gap: var(--space-sm);
+      margin-top: var(--space-md);
+    }
+
+    .btn {
+      padding: var(--space-xs) var(--space-md);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border);
+      background-color: var(--color-bg-container);
+      color: var(--color-text);
+      font-family: var(--font-family);
+      cursor: pointer;
+      transition: all var(--motion-base);
+    }
+
+    .btn:hover {
+      background-color: var(--color-bg-layout);
+    }
+
+    .btn-primary {
+      background-color: var(--color-primary);
+      color: white;
+      border-color: var(--color-primary);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--color-primary-hover);
+    }
+
+    .state-loading {
+      opacity: 0.7;
+    }
+
+    .skeleton-line {
+      height: 16px;
+      background-color: var(--color-bg-layout);
+      border-radius: var(--radius-sm);
+      margin-bottom: var(--space-xs);
+    }
+
+    .skeleton-line:last-child {
+      margin-bottom: 0;
+    }
+
+    .skeleton-text {
+      height: 12px;
+      background-color: var(--color-bg-layout);
+      border-radius: var(--radius-sm);
+      margin-bottom: var(--space-xs);
+    }
+
+    .skeleton-text:last-child {
+      margin-bottom: 0;
+    }
+
+    .state-empty,
+    .state-error,
+    .state-no-access,
+    .state-stale {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: var(--space-xl);
+      gap: var(--space-md);
+    }
+
+    .state-icon {
+      width: 48px;
+      height: 48px;
+      color: var(--color-text-secondary);
+    }
+
+    .state-title {
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+    }
+
+    .state-description {
+      color: var(--color-text-secondary);
+      max-width: 400px;
+    }
+
+    .state-actions {
+      display: flex;
+      gap: var(--space-sm);
+    }
+
+    .focus-ring:focus {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 768px) {
+      .main-content {
+        flex-direction: column;
+      }
+
+      .plan-row {
+        grid-template-columns: 1fr 60px 60px 80px 100px 80px;
+      }
+
+      .totals {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="screen">
+    <!-- SECTION 1: THE SKILL PLAN SCREEN -->
+    <div class="top-bar">
+      <div class="character-switcher">
+        <select class="focus-ring">
+          <option>All Characters</option>
+          <option>Character 1</option>
+          <option>Character 2</option>
+        </select>
+      </div>
+      <div class="sync-badge">
+        <svg class="sync-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M12 16V20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M12 4V8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M16 12H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M4 12H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Last sync: 2023-05-15 14:30</span>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div class="left-column">
+        <div class="panel">
+          <div class="panel-header">Skill Groups</div>
+          <div class="skill-tree">
+            <div class="skill-group">
+              <div class="skill-group-header">
+                <div class="skill-group-name">Gunnery</div>
+                <div class="skill-progress">
+                  <div class="progress-bar">
+                    <div class="progress-fill" style="width: 60%"></div>
+                  </div>
+                  <div class="progress-text">3/5</div>
+                </div>
+              </div>
+              <div class="skill-list">
+                <div class="skill-item">
+                  <div class="skill-item-header">
+                    <div class="skill-name">Rapid Light Missile Launcher I</div>
+                    <div class="skill-level">Level 1</div>
+                  </div>
+                </div>
+                <div class="skill-item">
+                  <div class="skill-item-header">
+                    <div class="skill-name">Rapid Light Missile Launcher II</div>
+                    <div class="skill-level">Level 2</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="skill-group">
+              <div class="skill-group-header">
+                <div class="skill-group-name">Navigation</div>
+                <div class="skill-progress">
+                  <div class="progress-bar">
+                    <div class="progress-fill" style="width: 100%"></div>
+                  </div>
+                  <div class="progress-text">5/5</div>
+                </div>
+              </div>
+              <div class="skill-list">
+                <div class="skill-item">
+                  <div class="skill-item-header">
+                    <div class="skill-name">Navigation</div>
+                    <div class="skill-level">Level 5</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="skill-group">
+              <div class="skill-group-header">
+                <div class="skill-group-name">Engineering</div>
+                <div class="skill-progress">
+                  <div class="progress-bar">
+                    <div class="progress-fill" style="width: 30%"></div>
+                  </div>
+                  <div class="progress-text">1/5</div>
+                </div>
+              </div>
+              <div class="skill-list">
+                <div class="skill-item">
+                  <div class="skill-item-header">
+                    <div class="skill-name">Capacitor Management</div>
+                    <div class="skill-level">Level 1</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="right-column">
+        <div class="panel">
+          <div class="panel-header">Planned Levels</div>
+          <div class="plan-list">
+            <div class="plan-row" data-status="learned">
+              <div class="plan-cell skill-name">Rapid Light Missile Launcher I</div>
+              <div class="plan-cell rank">1</div>
+              <div class="plan-cell level">1 → 2</div>
+              <div class="plan-cell sp-cost">1,200</div>
+              <div class="plan-cell time">3d 4h 12m</div>
+              <div class="plan-cell status">
+                <span class="status-indicator"></span>
+                <span>Learned</span>
+              </div>
+            </div>
+            <div class="plan-row" data-status="queued">
+              <div class="plan-cell skill-name">Rapid Light Missile Launcher II</div>
+              <div class="plan-cell rank">2</div>
+              <div class="plan-cell level">2 → 3</div>
+              <div class="plan-cell sp-cost">2,400</div>
+              <div class="plan-cell time">5d 8h 30m</div>
+              <div class="plan-cell status">
+                <span class="status-indicator"></span>
+                <span>Queued</span>
+              </div>
+            </div>
+            <div class="plan-row" data-status="next">
+              <div class="plan-cell skill-name">Rapid Light Missile Launcher III</div>
+              <div class="plan-cell rank">3</div>
+              <div class="plan-cell level">3 → 4</div>
+              <div class="plan-cell sp-cost">4,800</div>
+              <div class="plan-cell time">7d 12h 45m</div>
+              <div class="plan-cell status">
+                <span class="status-indicator"></span>
+                <span>Next</span>
+              </div>
+            </div>
+            <div class="plan-row" data-status="unreachable">
+              <div class="plan-cell skill-name">Rapid Light Missile Launcher IV</div>
+              <div class="plan-cell rank">4</div>
+              <div class="plan-cell level">4 → 5</div>
+              <div class="plan-cell sp-cost">9,600</div>
+              <div class="plan-cell time">10d 16h 20m</div>
+              <div class="plan-cell status">
+                <span class="status-indicator"></span>
+                <span>Unreachable</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="totals">
+          <div class="total-card">
+            <div class="total-label">Total Time</div>
+            <div class="total-value">15d 20h 45m</div>
+          </div>
+          <div class="total-card">
+            <div class="total-label">Total SP</div>
+            <div class="total-value">18,000</div>
+          </div>
+          <div class="total-card">
+            <div class="total-label">Total ISK</div>
+            <div class="total-value">1,234,567</div>
+          </div>
+          <div class="total-card">
+            <div class="total-label">Actions</div>
+            <div class="actions">
+              <button class="btn btn-primary focus-ring">Merge Plans</button>
+              <button class="btn focus-ring">Plan for Ship</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: THE STATES OF THAT SCREEN -->
+    <div class="state-loading" data-state="loading">
+      <div class="panel">
+        <div class="panel-header">Skill Groups</div>
+        <div class="skill-tree">
+          <div class="skill-group">
+            <div class="skill-group-header">
+              <div class="skill-group-name">
+                <div class="skeleton-text"></div>
+              </div>
+              <div class="skill-progress">
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width: 0%"></div>
+                </div>
+                <div class="progress-text">
+                  <div class="skeleton-text"></div>
+                </div>
+              </div>
+            </div>
+            <div class="skill-list">
+              <div class="skill-item">
+                <div class="skill-item-header">
+                  <div class="skill-name">
+                    <div class="skeleton-text"></div>
+                  </div>
+                  <div class="skill-level">
+                    <div class="skeleton-text"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">Planned Levels</div>
+        <div class="plan-list">
+          <div class="plan-row">
+            <div class="plan-cell skill-name">
+              <div class="skeleton-line"></div>
+            </div>
+            <div class="plan-cell rank">
+              <div class="skeleton-line"></div>
+            </div>
+            <div class="plan-cell level">
+              <div class="skeleton-line"></div>
+            </div>
+            <div class="plan-cell sp-cost">
+              <div class="skeleton-line"></div>
+            </div>
+            <div class="plan-cell time">
+              <div class="skeleton-line"></div>
+            </div>
+            <div class="plan-cell status">
+              <div class="skeleton-line"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-empty" data-state="empty">
+      <svg class="state-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 12C12 12.5523 11.5523 13 11 13C10.4477 13 10 12.5523 10 12C10 11.4477 10.4477 11 11 11C11.5523 11 12 11.4477 12 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 12C12 12.5523 11.5523 13 11 13C10.4477 13 10 12.5523 10 12C10 11.4477 10.4477 11 11 11C11.5523 11 12 11.4477 12 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 12C12 12.5523 11.5523 13 11 13C10.4477 13 10 12.5523 10 12C10 11.4477 10.4477 11 11 11C11.5523 11 12 11.4477 12 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 12C12 12.5523 11.5523 13 11 13C10.4477 13 10 12.5523 10 12C10 11.4477 10.4477 11 11 11C11.5523 11 12 11.4477 12 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 12C12 12.5523 11.5523 13 11 13C10.4477 13 10 12.5523 10 12C10 11.4477 10.4477 11 11 11C11.5523 11 12 11.4477 12 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 12C12 12.5523 11.5523 13 11 13C10.4477 13 10 12.5523 10 12C10 11.4477 10.4477 11 11 11C11.5523 11 12 11.4477 12 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 12C12 12.5523 11.5523 13 11 13C10.4477 13 10 12.5523 10 12C10 11.4477 10.4477 11 11 11C11.5523 11......</path>
+      </svg>
+      <div class="state-title">No Skill Plan Yet</div>
+      <div class="state-description">You haven't created a skill plan yet. Start by selecting skills to learn.</div>
+      <div class="state-actions">
+        <button class="btn btn-primary focus-ring">Create New Plan</button>
+      </div>
+    </div>
+
+    <div class="state-error" data-state="error">
+      <svg class="state-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 8V12M12 16H12.01M19 12C19 15.866 15.866 19 12 19C8.13401 19 5 15.866 5 12C5 8.13401 8.13401 5 12 5C15.866 5 19 8.13401 19 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="state-title">Failed to Load Plan</div>
+      <div class="state-description">There was an error loading your skill plan. Please try again later.</div>
+      <div class="state-actions">
+        <button class="btn btn-primary focus-ring">Retry</button>
+      </div>
+    </div>
+
+    <div class="state-no-access" data-state="no-access">
+      <svg class="state-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 15V12M12 8H12.01M19 12C19 15.866 15.866 19 12 19C8.13401 19 5 15.866 5 12C5 8.13401 8.13401 5 12 5C15.866 5 19 8.13401 19 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="state-title">Access Denied</div>
+      <div class="state-description">You don't have permission to view this skill plan. You need the 'skills.read' scope.</div>
+      <div class="state-actions">
+        <button class="btn btn-primary focus-ring">Grant Scope</button>
+      </div>
+    </div>
+
+    <div class="state-stale" data-state="stale">
+      <svg class="state-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 16V20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 4V8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M16 12H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M4 12H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="state-title">Data Stale</div>
+      <div class="state-description">Your skill plan data is 3 days old. Refresh to get the latest information.</div>
+      <div class="state-actions">
+        <button class="btn btn-primary focus-ring">Refresh</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
