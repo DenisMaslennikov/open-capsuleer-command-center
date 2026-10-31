@@ -6,7 +6,7 @@ from app.domain.skills.sp_rate import skill_sp_per_minute
 
 class TestSkillSpPerMinute:
     @pytest.mark.parametrize(
-        ("primary", "secondary", "expected"),
+        "primary, secondary, expected",
         [
             (17, 17, 25.5),
             (27, 21, 37.5),
@@ -18,7 +18,7 @@ class TestSkillSpPerMinute:
         assert skill_sp_per_minute(primary=primary, secondary=secondary) == expected
 
     @pytest.mark.parametrize(
-        ("primary", "secondary"),
+        "primary, secondary",
         [
             (0, 0),
             (17, -1),
