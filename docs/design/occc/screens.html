@@ -658,50 +658,122 @@ h2{font-size:18px;font-weight:600;margin:var(--space-xl) 0 var(--space-md);color
     <main class="content">
       <div class="split">
         <div class="split-main">
-          <div class="table-wrap" data-component="KillmailList">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Ship</th>
-                  <th>System</th>
-                  <th>Time</th>
-                  <th>Value</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr data-selected="true">
-                  <td style="display:flex;align-items:center;gap:var(--space-sm)">
-                    <div class="ship-icon" aria-hidden="true"></div>
-                    <span>Drake</span>
-                  </td>
-                  <td>Jita</td>
-                  <td class="num">2h 14m ago</td>
-                  <td class="num">124.5M ISK</td>
-                </tr>
-                <tr>
-                  <td style="display:flex;align-items:center;gap:var(--space-sm)">
-                    <div class="ship-icon" aria-hidden="true"></div>
-                    <span>Caracal</span>
-                  </td>
-                  <td>Perimeter</td>
-                  <td class="num">4h 32m ago</td>
-                  <td class="num">42.8M ISK</td>
-                </tr>
-                <tr>
-                  <td style="display:flex;align-items:center;gap:var(--space-sm)">
-                    <div class="ship-icon" aria-hidden="true"></div>
-                    <span>Cormorant</span>
-                  </td>
-                  <td>Dodixie</td>
-                  <td class="num">1d 2h ago</td>
-                  <td class="num">8.2M ISK</td>
-                </tr>
-              </tbody>
-            </table>
+          <div style="display:flex;flex-direction:column;gap:var(--space-xs)">
+            <div data-component="KillmailRow" data-killmail-status="kill" data-ship-illustration="Caracal" style="display:flex;align-items:center;gap:var(--space-md);padding:var(--space-md);background:var(--color-bg-container);border:1px solid var(--color-border);border-radius:var(--radius-md);cursor:pointer;transition:all var(--motion-fast)">
+              <svg width="56" height="56" viewBox="0 0 56 56" style="flex:none;stroke:var(--color-text-secondary);stroke-width:1;stroke-dasharray:4 4;fill:none"><rect x="1" y="1" width="54" height="54" rx="4"/><text x="28" y="32" text-anchor="middle" font-size="10" fill="currentColor" style="font-family:var(--font-mono)">Caracal</text></svg>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:500;font-size:14px">Caracal</div>
+                <div style="font-size:12px;color:var(--color-text-secondary)">Perimeter</div>
+              </div>
+              <div class="num" style="font-size:13px;color:var(--color-text-secondary)">4h 32m ago</div>
+              <div class="num" style="font-size:14px;font-weight:500;color:var(--color-success)">42.8M ISK</div>
+            </div>
+            
+            <div data-component="KillmailRow" data-killmail-status="loss" data-killmail-selected="true" data-ship-illustration="Drake" style="display:flex;align-items:center;gap:var(--space-md);padding:var(--space-md);background:var(--color-primary-bg);border:1px solid var(--color-primary);border-radius:var(--radius-md);cursor:pointer;transition:all var(--motion-fast)">
+              <svg width="56" height="56" viewBox="0 0 56 56" style="flex:none;stroke:var(--color-text-secondary);stroke-width:1;stroke-dasharray:4 4;fill:none"><rect x="1" y="1" width="54" height="54" rx="4"/><text x="28" y="32" text-anchor="middle" font-size="10" fill="currentColor" style="font-family:var(--font-mono)">Drake</text></svg>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:500;font-size:14px">Drake</div>
+                <div style="font-size:12px;color:var(--color-text-secondary)">Jita</div>
+              </div>
+              <div class="num" style="font-size:13px;color:var(--color-text-secondary)">2h 14m ago</div>
+              <div class="num" style="font-size:14px;font-weight:500;color:var(--color-danger)">124.5M ISK</div>
+            </div>
+            
+            <div data-component="KillmailRow" data-killmail-status="kill" data-ship-illustration="Cormorant" style="display:flex;align-items:center;gap:var(--space-md);padding:var(--space-md);background:var(--color-bg-container);border:1px solid var(--color-border);border-radius:var(--radius-md);cursor:pointer;transition:all var(--motion-fast)">
+              <svg width="56" height="56" viewBox="0 0 56 56" style="flex:none;stroke:var(--color-text-secondary);stroke-width:1;stroke-dasharray:4 4;fill:none"><rect x="1" y="1" width="54" height="54" rx="4"/><text x="28" y="32" text-anchor="middle" font-size="10" fill="currentColor" style="font-family:var(--font-mono)">Cormorant</text></svg>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:500;font-size:14px">Cormorant</div>
+                <div style="font-size:12px;color:var(--color-text-secondary)">Dodixie</div>
+              </div>
+              <div class="num" style="font-size:13px;color:var(--color-text-secondary)">1d 2h ago</div>
+              <div class="num" style="font-size:14px;font-weight:500;color:var(--color-success)">8.2M ISK</div>
+            </div>
+            
+            <div data-component="KillmailRow" data-killmail-status="kill" data-ship-illustration="Stabber" style="display:flex;align-items:center;gap:var(--space-md);padding:var(--space-md);background:var(--color-bg-container);border:1px solid var(--color-border);border-radius:var(--radius-md);cursor:pointer;transition:all var(--motion-fast)">
+              <svg width="56" height="56" viewBox="0 0 56 56" style="flex:none;stroke:var(--color-text-secondary);stroke-width:1;stroke-dasharray:4 4;fill:none"><rect x="1" y="1" width="54" height="54" rx="4"/><text x="28" y="32" text-anchor="middle" font-size="10" fill="currentColor" style="font-family:var(--font-mono)">Stabber</text></svg>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:500;font-size:14px">Stabber</div>
+                <div style="font-size:12px;color:var(--color-text-secondary)">Rancer</div>
+              </div>
+              <div class="num" style="font-size:13px;color:var(--color-text-secondary)">2d 8h ago</div>
+              <div class="num" style="font-size:14px;font-weight:500;color:var(--color-success)">18.9M ISK</div>
+            </div>
           </div>
         </div>
+        
         <aside class="split-side">
-          <div class="ph" data-component="KillmailDetail">Participants list</div>
+          <div data-component="KillmailDetail" style="display:flex;flex-direction:column;gap:var(--space-md)">
+            <div>
+              <div style="display:flex;align-items:center;gap:var(--space-sm);margin-bottom:var(--space-md);padding-bottom:var(--space-md);border-bottom:1px solid var(--color-border)">
+                <svg width="40" height="40" viewBox="0 0 40 40" style="flex:none;stroke:var(--color-text-secondary);stroke-width:1;stroke-dasharray:3 3;fill:none"><rect x="1" y="1" width="38" height="38" rx="3"/></svg>
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:600;font-size:14px">Kadir Aylin</div>
+                  <div style="font-size:13px;color:var(--color-text-secondary)">Drake</div>
+                </div>
+              </div>
+              
+              <button data-share-zkb type="button" style="width:100%;display:flex;align-items:center;justify-content:center;gap:var(--space-xs);height:36px;padding:0 var(--space-md);background:var(--color-primary);color:white;border:0;border-radius:var(--radius-md);font:inherit;font-weight:500;cursor:pointer;transition:background var(--motion-fast)">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><path d="M13 13l-3-3"/><path d="M9 5l4-4M13 1h0M15 3h0"/></svg>
+                Share on zKillboard
+              </button>
+              <a href="https://zkillboard.com/kill/123456789/" style="display:none">zkillboard link</a>
+            </div>
+            
+            <div>
+              <h4 style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-secondary);margin:0 0 var(--space-sm)">Lost items</h4>
+              
+              <div style="background:var(--color-bg-layout);border:1px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden">
+                <table style="width:100%;border-collapse:collapse;font-size:12px">
+                  <thead>
+                    <tr style="background:var(--color-bg-container);border-bottom:1px solid var(--color-border)">
+                      <th style="text-align:left;padding:var(--space-xs) var(--space-sm);font-weight:600;color:var(--color-text-secondary)">Module</th>
+                      <th style="text-align:right;padding:var(--space-xs) var(--space-sm);font-weight:600;color:var(--color-text-secondary)">Qty</th>
+                      <th style="text-align:right;padding:var(--space-xs) var(--space-sm);font-weight:600;color:var(--color-text-secondary)">Unit</th>
+                      <th style="text-align:right;padding:var(--space-xs) var(--space-sm);font-weight:600;color:var(--color-text-secondary)">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr data-module="Heavy Missile Launcher II" style="border-bottom:1px solid var(--color-border)">
+                      <td style="padding:var(--space-xs) var(--space-sm)">Heavy Missile Launcher II</td>
+                      <td class="num" style="text-align:right;padding:var(--space-xs) var(--space-sm)">6</td>
+                      <td class="num" style="text-align:right;padding:var(--space-xs) var(--space-sm)">2.4M</td>
+                      <td class="num" style="text-align:right;padding:var(--space-xs) var(--space-sm)">14.4M</td>
+                    </tr>
+                    <tr data-module="Large Shield Extender II" style="border-bottom:1px solid var(--color-border)">
+                      <td style="padding:var(--space-xs) var(--space-sm)">Large Shield Extender II</td>
+                      <td class="num" style="text-align:right;padding:var(--space-xs) var(--space-sm)">3</td>
+                      <td class="num" style="text-align:right;padding:var(--space-xs) var(--space-sm)">8.2M</td>
+                      <td class="num" style="text-align:right;padding:var(--space-xs) var(--space-sm)">24.6M</td>
+                    </tr>
+                    <tr data-module="Ballistic Control System II" style="border-bottom:1px solid var(--color-border)">
+                      <td style="padding:var(--space-xs) var(--space-sm)">Ballistic Control System II</td>
+                      <td class="num" style="text-align:right;padding:var(--space-xs) var(--space-sm)">3</td>
+                      <td class="num" style="text-align:right;padding:var(--space-xs) var(--space-sm)">4.8M</td>
+                      <td class="num" style="text-align:right;padding:var(--space-xs) var(--space-sm)">14.4M</td>
+                    </tr>
+                    <tr data-module="Shield Boost Amplifier II" style="border-bottom:1px solid var(--color-border)">
+                      <td style="padding:var(--space-xs) var(--space-sm)">Shield Boost Amplifier II</td>
+                      <td class="num" style="text-align:right;padding:var(--space-xs) var(--space-sm)">2</td>
+                      <td class="num" style="text-align:right;padding:var(--space-xs) var(--space-sm)">3.1M</td>
+                      <td class="num" style="text-align:right;padding:var(--space-xs) var(--space-sm)">6.2M</td>
+                    </tr>
+                    <tr data-module="Adaptive Invulnerability Field II">
+                      <td style="padding:var(--space-xs) var(--space-sm)">Adaptive Invulnerability Field II</td>
+                      <td class="num" style="text-align:right;padding:var(--space-xs) var(--space-sm)">2</td>
+                      <td class="num" style="text-align:right;padding:var(--space-xs) var(--space-sm)">5.8M</td>
+                      <td class="num" style="text-align:right;padding:var(--space-xs) var(--space-sm)">11.6M</td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr style="background:var(--color-bg-container);border-top:2px solid var(--color-border);font-weight:600">
+                      <td colspan="3" style="padding:var(--space-sm);text-align:right">Total loss</td>
+                      <td class="num" style="padding:var(--space-sm);text-align:right;color:var(--color-danger)">124.5M ISK</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
         </aside>
       </div>
     </main>
