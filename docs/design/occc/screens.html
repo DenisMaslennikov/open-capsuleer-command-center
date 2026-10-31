@@ -347,53 +347,170 @@ h2{font-size:18px;font-weight:600;margin:var(--space-xl) 0 var(--space-md);color
     </div>
     <nav class="rail" aria-label="Navigation"></nav>
     <main class="content">
+      <div style="background:var(--color-bg-container);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-md);margin-bottom:var(--space-md)" data-role="lines-usage">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-xs)">
+          <span style="font-size:13px;font-weight:500;color:var(--color-text-secondary)">Lines used / Линий занято</span>
+          <span style="font-size:13px;font-weight:600" class="num">7 / 12</span>
+        </div>
+        <div data-component="LineUsageBar" style="position:relative;height:8px;background:var(--color-border);border-radius:4px;overflow:hidden">
+          <div style="position:absolute;top:0;left:0;height:100%;width:58.33%;background:var(--color-primary);border-radius:4px"></div>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-bottom:var(--space-md)">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Character / Персонаж</th>
+              <th>Corporation / Корпорация</th>
+              <th>Lines / Линии</th>
+              <th>Capacity / Загрузка</th>
+              <th>Status / Статус</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-component="CharacterLineRow">
+              <td style="display:flex;align-items:center;gap:var(--space-sm)">
+                <div class="portrait" aria-hidden="true"></div>
+                <span>Kadir Aylin</span>
+              </td>
+              <td>Achura Starlight</td>
+              <td class="num">2 / 3</td>
+              <td>
+                <div data-component="LineUsageBar" style="position:relative;height:6px;background:var(--color-border);border-radius:3px;overflow:hidden;width:80px">
+                  <div style="position:absolute;top:0;left:0;height:100%;width:66.67%;background:var(--color-primary);border-radius:3px"></div>
+                </div>
+              </td>
+              <td>
+                <div style="display:flex;gap:4px">
+                  <div style="width:6px;height:6px;border-radius:50%;background:var(--color-success)" data-line-state="running" title="Running"></div>
+                  <div style="width:6px;height:6px;border-radius:50%;background:var(--color-success)" data-line-state="running" title="Running"></div>
+                  <div style="width:6px;height:6px;border-radius:50%;background:var(--color-text-secondary);opacity:0.3" data-line-state="idle" title="Idle"></div>
+                </div>
+              </td>
+            </tr>
+            <tr data-component="CharacterLineRow">
+              <td style="display:flex;align-items:center;gap:var(--space-sm)">
+                <div class="portrait" aria-hidden="true"></div>
+                <span>Saya Okamoto</span>
+              </td>
+              <td>Deep Space Ventures</td>
+              <td class="num">3 / 3</td>
+              <td>
+                <div data-component="LineUsageBar" style="position:relative;height:6px;background:var(--color-border);border-radius:3px;overflow:hidden;width:80px">
+                  <div style="position:absolute;top:0;left:0;height:100%;width:100%;background:var(--color-primary);border-radius:3px"></div>
+                </div>
+              </td>
+              <td style="display:flex;align-items:center;gap:var(--space-sm)">
+                <div style="display:flex;gap:4px">
+                  <div style="width:6px;height:6px;border-radius:50%;background:var(--color-success)" data-line-state="running" title="Running"></div>
+                  <div style="width:6px;height:6px;border-radius:50%;background:var(--color-warning)" data-line-state="ready" title="Ready"></div>
+                  <div style="width:6px;height:6px;border-radius:50%;background:var(--color-success)" data-line-state="running" title="Running"></div>
+                </div>
+                <span style="font-size:12px;color:var(--color-text-secondary);font-weight:500">full / заполнено</span>
+              </td>
+            </tr>
+            <tr data-component="CharacterLineRow">
+              <td style="display:flex;align-items:center;gap:var(--space-sm)">
+                <div class="portrait" aria-hidden="true"></div>
+                <span>Marcus Vane</span>
+              </td>
+              <td>Orbital Industries</td>
+              <td class="num">1 / 2</td>
+              <td>
+                <div data-component="LineUsageBar" style="position:relative;height:6px;background:var(--color-border);border-radius:3px;overflow:hidden;width:80px">
+                  <div style="position:absolute;top:0;left:0;height:100%;width:50%;background:var(--color-primary);border-radius:3px"></div>
+                </div>
+              </td>
+              <td>
+                <div style="display:flex;gap:4px">
+                  <div style="width:6px;height:6px;border-radius:50%;background:var(--color-success)" data-line-state="running" title="Running"></div>
+                  <div style="width:6px;height:6px;border-radius:50%;background:var(--color-text-secondary);opacity:0.3" data-line-state="idle" title="Idle"></div>
+                </div>
+              </td>
+            </tr>
+            <tr data-component="CharacterLineRow">
+              <td style="display:flex;align-items:center;gap:var(--space-sm)">
+                <div class="portrait" aria-hidden="true"></div>
+                <span>Elena Frost</span>
+              </td>
+              <td>Caldari Innovations</td>
+              <td class="num">1 / 2</td>
+              <td>
+                <div data-component="LineUsageBar" style="position:relative;height:6px;background:var(--color-border);border-radius:3px;overflow:hidden;width:80px">
+                  <div style="position:absolute;top:0;left:0;height:100%;width:50%;background:var(--color-primary);border-radius:3px"></div>
+                </div>
+              </td>
+              <td>
+                <div style="display:flex;gap:4px">
+                  <div style="width:6px;height:6px;border-radius:50%;background:var(--color-success)" data-line-state="running" title="Running"></div>
+                  <div style="width:6px;height:6px;border-radius:50%;background:var(--color-text-secondary);opacity:0.3" data-line-state="idle" title="Idle"></div>
+                </div>
+              </td>
+            </tr>
+            <tr data-component="CharacterLineRow">
+              <td style="display:flex;align-items:center;gap:var(--space-sm)">
+                <div class="portrait" aria-hidden="true"></div>
+                <span>Jin Wei</span>
+              </td>
+              <td>Starforge Collective</td>
+              <td class="num">0 / 2</td>
+              <td>
+                <div data-component="LineUsageBar" style="position:relative;height:6px;background:var(--color-border);border-radius:3px;overflow:hidden;width:80px">
+                  <div style="position:absolute;top:0;left:0;height:100%;width:0%;background:var(--color-primary);border-radius:3px"></div>
+                </div>
+              </td>
+              <td>
+                <div style="display:flex;gap:4px">
+                  <div style="width:6px;height:6px;border-radius:50%;background:var(--color-text-secondary);opacity:0.3" data-line-state="idle" title="Idle"></div>
+                  <div style="width:6px;height:6px;border-radius:50%;background:var(--color-text-secondary);opacity:0.3" data-line-state="idle" title="Idle"></div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
       <div class="tabs" data-component="IndustryTabs">
         <button class="tab" type="button" role="tab" aria-selected="true">Active</button>
         <button class="tab" type="button" role="tab" aria-selected="false">Ready</button>
         <button class="tab" type="button" role="tab" aria-selected="false">History</button>
       </div>
-      <div class="split">
-        <div class="split-main">
-          <div class="table-wrap" data-component="IndustryJobsTable">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Product</th>
-                  <th>Runs</th>
-                  <th>Ends</th>
-                  <th>Cost</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr data-selected="true">
-                  <td>Drake</td>
-                  <td class="num">5</td>
-                  <td class="num">2h 14m</td>
-                  <td class="num">124.5M ISK</td>
-                  <td><span class="status-badge" data-status="active">Active</span></td>
-                </tr>
-                <tr>
-                  <td>Scourge Heavy Missile</td>
-                  <td class="num">100</td>
-                  <td class="num">6h 32m</td>
-                  <td class="num">8.2M ISK</td>
-                  <td><span class="status-badge" data-status="active">Active</span></td>
-                </tr>
-                <tr>
-                  <td>Medium Shield Extender II</td>
-                  <td class="num">20</td>
-                  <td class="num">18m</td>
-                  <td class="num">42.8M ISK</td>
-                  <td><span class="status-badge" data-status="ready">Ready</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <aside class="split-side">
-          <div class="ph" data-component="MaterialList">Material requirements</div>
-        </aside>
+      <div class="table-wrap" data-component="IndustryJobsTable">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Runs</th>
+              <th>Ends</th>
+              <th>Cost</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-selected="true">
+              <td>Drake</td>
+              <td class="num">5</td>
+              <td class="num">2h 14m</td>
+              <td class="num">124.5M ISK</td>
+              <td><span class="status-badge" data-status="active">Active</span></td>
+            </tr>
+            <tr>
+              <td>Scourge Heavy Missile</td>
+              <td class="num">100</td>
+              <td class="num">6h 32m</td>
+              <td class="num">8.2M ISK</td>
+              <td><span class="status-badge" data-status="active">Active</span></td>
+            </tr>
+            <tr>
+              <td>Medium Shield Extender II</td>
+              <td class="num">20</td>
+              <td class="num">18m</td>
+              <td class="num">42.8M ISK</td>
+              <td><span class="status-badge" data-status="ready">Ready</span></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </main>
   </div>
