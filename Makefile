@@ -1,4 +1,4 @@
-.PHONY: up down logs ps test test-backend test-frontend lint e2e migrate sdk sde fmt adr
+.PHONY: up down logs ps test test-backend test-frontend lint e2e migrate sdk sde fmt adr schema-gate
 
 up:
 	docker compose up --build -d
@@ -16,6 +16,9 @@ test: test-backend test-frontend
 
 test-backend:
 	cd backend && uv run pytest
+
+schema-gate:
+	cd backend && PYTHONPATH=src uv run python -m app.db.schema_gate --contract ../docs/schema/schema.json
 
 test-frontend:
 	cd frontend && npm test

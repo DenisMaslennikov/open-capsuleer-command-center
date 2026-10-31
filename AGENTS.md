@@ -24,6 +24,7 @@ make e2e       # Playwright against the running stack
 make migrate   # alembic upgrade head
 make sdk       # regenerate frontend API types from the backend OpenAPI
 make sde       # download and import the current static data export
+make schema-gate # compare models with the schema contract
 ```
 
 ## Layout
@@ -33,8 +34,9 @@ backend/src/app/     features/ (vertical slices), domain/, dbhelpers/, esi/, sde
 backend/tests/       unit/ and integration/
 frontend/src/        pages/, common/, api/, theme/, i18n/, lib/
 frontend/e2e/        Playwright specs against the running stack
-.agents/rules/       rules: process, style, architecture, interface, testing, licensing
+.agents/rules/       rules: process, style, architecture, interface, testing, licensing, database
 docs/adr/            decisions (adrkit)
+docs/schema/         database schema contract (JSON) and ERD (DBML, generated)
 ```
 
 ## Project rules
@@ -47,6 +49,7 @@ docs/adr/            decisions (adrkit)
 | `.agents/rules/ui.md` | design tokens, component placement, i18n, accessibility | any change under `frontend/` |
 | `.agents/rules/testing.md` | where and how to write tests, fixtures, e2e | before writing or editing tests |
 | `.agents/rules/licensing.md` | what may be licensed how, CCP data boundary | touching data, fixtures, images, licence files |
+| `.agents/rules/database.md` | schema contract, table ownership, migrations, rules of the data model | before touching models, migrations or SQL |
 
 A new rules group = a new file in `.agents/rules/` + a row in this table (through a PR).
 

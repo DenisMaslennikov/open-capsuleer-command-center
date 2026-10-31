@@ -1,0 +1,47 @@
+name: self-hosted
+
+# Runs the heavy checks on the ephemeral self-hosted runner attached to this repository.
+# The runner executes one job per container and disappears; it must never execute code written by
+# somebody other than the repository owner. Two guards do that:
+#   1. the job condition below rejects fork pull requests and any actor but the owner;
+#   2. the repository setting requires approval for all external contributors (documented in
+#      .agents/rules/workflow.md), so a fork pull request does not start anything at all.
+# GitHub-hosted `ci` stays the default pipeline; this workflow is the opt-in heavy path.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  heavy:
+    if: >
+      github.actor == 'DenisMaslennikov' &&
+      (github.event_name == 'workflow_dispatch' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: [self-hosted, cascade]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.14"
+
+      - name: Show what is running where
+        run: |
+          echo "runner: $RUNNER_NAME"
+          echo "event: $GITHUB_EVENT_NAME by $GITHUB_ACTOR"
+          echo "ref: $GITHUB_REF"
+          uname -a
+
+      - name: Schema gate
+        working-directory: backend
+        env:
+          PYTHONPATH: src
+        run: |
+          uv sync --frozen
+          uv run pytest -q
+          uv run python -m app.db.schema_gate --contract ../docs/schema/schema.json
