@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OCCC · Module screens</title>
+<style>
+:root{
+  --color-bg-layout:#f4f8fd; --color-bg-rail:#eef4fc; --color-bg-container:#ffffff;
+  --color-border:#e2ecf8; --color-primary:#2f6fed; --color-primary-hover:#245cd0;
+  --color-text:#1f2328; --color-text-secondary:#6b7280;
+  --color-success:#2f9e44; --color-warning:#d98324; --color-danger:#c92a2a;
+  --color-primary-bg:color-mix(in srgb,var(--color-primary) 10%,transparent);
+  --color-primary-bg-hover:color-mix(in srgb,var(--color-primary) 6%,transparent);
+  --shadow-sm:0 1px 2px rgba(31,35,40,.06);
+  --radius-sm:4px; --radius-md:8px; --radius-lg:12px;
+  --space-xxs:4px; --space-xs:8px; --space-sm:12px; --space-md:16px; --space-lg:24px; --space-xl:32px;
+  --font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-mono:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
+  --size-topbar:56px; --size-rail-collapsed:64px; --size-icon:18px;
+  --motion-fast:120ms;
+}
+*{box-sizing:border-box}
+body{margin:0;padding:var(--space-lg);background:var(--color-bg-layout);color:var(--color-text);
+  font:400 14px/1.45 var(--font-family)}
+h1{font-size:24px;font-weight:600;margin:0 0 var(--space-lg)}
+h2{font-size:18px;font-weight:600;margin:var(--space-xl) 0 var(--space-md);color:var(--color-text)}
+.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}
+
+.module{margin-bottom:var(--space-xl);background:var(--color-bg-container);border:1px solid var(--color-border);
+  border-radius:var(--radius-lg);padding:var(--space-lg);box-shadow:var(--shadow-sm)}
+.module-title{font-size:16px;font-weight:600;margin:0 0 var(--space-md);color:var(--color-text-secondary)}
+
+.shell{display:grid;grid-template-columns:var(--size-rail-collapsed) 1fr;height:520px;
+  border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden;background:var(--color-bg-layout)}
+.topbar{grid-column:1/-1;display:flex;align-items:center;gap:var(--space-md);height:var(--size-topbar);
+  padding:0 var(--space-md);background:var(--color-bg-container);border-bottom:1px solid var(--color-border)}
+.topbar-icon{width:var(--size-icon);height:var(--size-icon);stroke:var(--color-primary);fill:none;
+  stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.page-title{font-size:16px;font-weight:600;margin:0}
+.rail{background:var(--color-bg-rail);border-right:1px solid var(--color-border);padding:var(--space-sm) var(--space-xs)}
+.content{padding:var(--space-lg);overflow-y:auto}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-md);margin-bottom:var(--space-lg)}
+.stat-card{background:var(--color-bg-container);border:1px solid var(--color-border);border-radius:var(--radius-md);
+  padding:var(--space-md);display:flex;flex-direction:column;gap:var(--space-xxs)}
+.stat-label{font-size:12px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.05em}
+.stat-value{font-size:28px;font-weight:600;color:var(--color-text)}
+
+.todo-list{background:var(--color-bg-container);border:1px solid var(--color-border);border-radius:var(--radius-md);
+  padding:var(--space-md);margin-bottom:var(--space-md)}
+.todo-title{font-size:14px;font-weight:600;margin:0 0 var(--space-sm)}
+.todo-item{display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-xs) 0;
+  border-bottom:1px solid var(--color-border)}
+.todo-item:last-child{border-bottom:0}
+.todo-dot{width:6px;height:6px;border-radius:50%;background:var(--color-primary);flex:none}
+.todo-text{flex:1;font-size:14px}
+
+.sync-status{background:var(--color-bg-container);border:1px solid var(--color-border);border-radius:var(--radius-md);
+  padding:var(--space-sm) var(--space-md);display:flex;align-items:center;gap:var(--space-xs);font-size:13px}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--color-success);flex:none}
+
+.search-bar{display:flex;gap:var(--space-sm);margin-bottom:var(--space-md)}
+.search-input{flex:1;height:36px;padding:0 var(--space-md);border:1px solid var(--color-border);
+  border-radius:var(--radius-md);font:inherit;background:var(--color-bg-container)}
+.search-input:focus{border-color:var(--color-primary);outline:0}
+
+.filter-chips{display:flex;gap:var(--space-xs);margin-bottom:var(--space-md);flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:var(--space-xxs);height:28px;padding:0 var(--space-sm);
+  border:1px solid var(--color-border);border-radius:var(--radius-lg);background:var(--color-bg-container);
+  font-size:13px;cursor:pointer;transition:all var(--motion-fast)}
+.chip:hover{border-color:var(--color-primary);background:var(--color-primary-bg-hover)}
+.chip[data-active="true"]{background:var(--color-primary);color:white;border-color:var(--color-primary)}
+
+.split{display:grid;grid-template-columns:1fr 320px;gap:var(--space-md);height:100%}
+.split-main{overflow-y:auto}
+.split-side{background:var(--color-bg-container);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-md)}
+
+.table-wrap{background:var(--color-bg-container);border:1px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden}
+.table{width:100%;border-collapse:collapse;font-size:13px}
+.table th{text-align:left;padding:var(--space-sm) var(--space-md);background:var(--color-bg-layout);
+  font-weight:600;color:var(--color-text-secondary);border-bottom:1px solid var(--color-border);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.table td{padding:var(--space-sm) var(--space-md);border-bottom:1px solid var(--color-border)}
+.table tr:last-child td{border-bottom:0}
+.table tr:hover td{background:var(--color-primary-bg-hover)}
+.table tr[data-selected="true"] td{background:var(--color-primary-bg)}
+
+.mail-split{display:grid;grid-template-columns:380px 1fr;gap:0;height:100%}
+.mail-list{border-right:1px solid var(--color-border);overflow-y:auto;background:var(--color-bg-container)}
+.mail-tabs{display:flex;border-bottom:1px solid var(--color-border);padding:0 var(--space-md)}
+.mail-tab{padding:var(--space-sm) var(--space-md);border:0;background:transparent;font:inherit;cursor:pointer;
+  border-bottom:2px solid transparent;color:var(--color-text-secondary)}
+.mail-tab[aria-selected="true"]{color:var(--color-primary);border-bottom-color:var(--color-primary);font-weight:500}
+.mail-item{padding:var(--space-md);border-bottom:1px solid var(--color-border);cursor:pointer;transition:background var(--motion-fast)}
+.mail-item:hover{background:var(--color-primary-bg-hover)}
+.mail-item[data-selected="true"]{background:var(--color-primary-bg)}
+.mail-item[data-read="false"]{font-weight:500}
+.mail-header{display:flex;justify-content:space-between;align-items:baseline;gap:var(--space-sm);margin-bottom:var(--space-xxs)}
+.mail-sender{font-size:14px;font-weight:500}
+.mail-time{font-size:12px;color:var(--color-text-secondary)}
+.mail-subject{font-size:13px;color:var(--color-text-secondary)}
+.mail-unread{width:6px;height:6px;border-radius:50%;background:var(--color-primary);display:inline-block;margin-right:var(--space-xs)}
+.mail-pane{padding:var(--space-lg);overflow-y:auto;background:var(--color-bg-layout)}
+.mail-detail-header{background:var(--color-bg-container);border:1px solid var(--color-border);
+  border-radius:var(--radius-md);padding:var(--space-md);margin-bottom:var(--space-md)}
+
+.tabs{display:flex;gap:var(--space-xs);margin-bottom:var(--space-md);border-bottom:1px solid var(--color-border)}
+.tab{padding:var(--space-sm) var(--space-md);border:0;background:transparent;font:inherit;cursor:pointer;
+  border-bottom:2px solid transparent;color:var(--color-text-secondary);margin-bottom:-1px}
+.tab[aria-selected="true"]{color:var(--color-primary);border-bottom-color:var(--color-primary);font-weight:500}
+
+.ph{border:2px dashed var(--color-border);border-radius:var(--radius-md);padding:var(--space-lg);
+  text-align:center;color:var(--color-text-secondary);font-size:13px;background:var(--color-bg-layout)}
+
+.note-strip{background:color-mix(in srgb,var(--color-warning) 10%,transparent);
+  border:1px solid color-mix(in srgb,var(--color-warning) 30%,transparent);border-radius:var(--radius-md);
+  padding:var(--space-sm) var(--space-md);margin-top:var(--space-md);font-size:13px;display:flex;
+  align-items:center;justify-content:space-between;gap:var(--space-md)}
+.btn{height:32px;padding:0 var(--space-md);border:1px solid var(--color-primary);border-radius:var(--radius-md);
+  background:var(--color-primary);color:white;font:500 13px var(--font-family);cursor:pointer;transition:all var(--motion-fast)}
+.btn:hover{background:var(--color-primary-hover);border-color:var(--color-primary-hover)}
+
+.sparkline{width:80px;height:24px;background:var(--color-bg-layout);border:1px solid var(--color-border);border-radius:var(--radius-sm)}
+
+.settings-section{margin-bottom:var(--space-xl)}
+.settings-section:last-child{margin-bottom:0}
+.settings-title{font-size:14px;font-weight:600;margin:0 0 var(--space-md)}
+.settings-item{display:flex;align-items:center;gap:var(--space-md);padding:var(--space-md);
+  background:var(--color-bg-container);border:1px solid var(--color-border);border-radius:var(--radius-md);margin-bottom:var(--space-xs)}
+.settings-item:last-child{margin-bottom:0}
+.portrait{width:32px;height:32px;border-radius:50%;background:var(--color-bg-layout);flex:none}
+.settings-label{flex:1;font-size:14px}
+.settings-value{font-size:13px;color:var(--color-text-secondary)}
+.toggle{width:40px;height:22px;border-radius:11px;background:var(--color-border);position:relative;cursor:pointer;border:0;padding:0}
+.toggle::after{content:"";position:absolute;left:2px;top:2px;width:18px;height:18px;border-radius:50%;
+  background:white;transition:transform var(--motion-fast)}
+.toggle[aria-checked="true"]{background:var(--color-primary)}
+.toggle[aria-checked="true"]::after{transform:translateX(18px)}
+
+.danger-zone{background:color-mix(in srgb,var(--color-danger) 5%,transparent);
+  border:1px solid color-mix(in srgb,var(--color-danger) 20%,transparent);border-radius:var(--radius-md);padding:var(--space-md)}
+.danger-title{font-size:14px;font-weight:600;margin:0 0 var(--space-xs);color:var(--color-danger)}
+.danger-text{font-size:13px;color:var(--color-text-secondary);margin:0 0 var(--space-md)}
+.btn-danger{background:var(--color-danger);border-color:var(--color-danger)}
+.btn-danger:hover{background:#a61e1e;border-color:#a61e1e}
+
+.status-badge{display:inline-flex;align-items:center;gap:var(--space-xxs);padding:2px var(--space-xs);
+  border-radius:var(--radius-sm);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.status-badge[data-status="active"]{background:color-mix(in srgb,var(--color-success) 15%,transparent);color:var(--color-success)}
+.status-badge[data-status="ready"]{background:color-mix(in srgb,var(--color-primary) 15%,transparent);color:var(--color-primary)}
+.status-badge[data-status="delivered"]{background:color-mix(in srgb,var(--color-text-secondary) 15%,transparent);color:var(--color-text-secondary)}
+
+.ship-icon{width:24px;height:24px;background:var(--color-bg-layout);border:1px solid var(--color-border);border-radius:var(--radius-sm);flex:none}
+
+.scope-badge{display:inline-block;padding:2px var(--space-xs);background:var(--color-primary-bg);
+  color:var(--color-primary);border-radius:var(--radius-sm);font-size:11px;font-family:var(--font-mono)}
+</style>
+</head>
+<body>
+<h1>OCCC Module Screens</h1>
+<p style="color:var(--color-text-secondary);margin-bottom:var(--space-xl)">Low-fidelity structural sketches of seven modules. One collapsed rail, light theme. Top bar shown once and reused.</p>
+
+<section class="module" data-module="dashboard" data-component="ModuleSketch">
+  <h2 class="module-title">Dashboard</h2>
+  <div class="shell">
+    <div class="topbar">
+      <svg class="topbar-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      <h3 class="page-title">Dashboard</h3>
+    </div>
+    <nav class="rail" aria-label="Navigation"></nav>
+    <main class="content">
+      <div class="stats" data-component="StatTiles">
+        <div class="stat-card" data-component="StatCard">
+          <div class="stat-label">Characters synced</div>
+          <div class="stat-value num">4</div>
+        </div>
+        <div class="stat-card" data-component="StatCard">
+          <div class="stat-label">Jobs running</div>
+          <div class="stat-value num">12</div>
+        </div>
+        <div class="stat-card" data-component="StatCard">
+          <div class="stat-label">ISK balance</div>
+          <div class="stat-value num">1 428.2M</div>
+        </div>
+      </div>
+      <div class="todo-list" data-component="TodoList">
+        <h4 class="todo-title">What to do next</h4>
+        <div class="todo-item">
+          <span class="todo-dot" aria-hidden="true"></span>
+          <span class="todo-text">Check industry jobs ready for delivery</span>
+        </div>
+        <div class="todo-item">
+          <span class="todo-dot" aria-hidden="true"></span>
+          <span class="todo-text">Review 3 unread mails</span>
+        </div>
+        <div class="todo-item">
+          <span class="todo-dot" aria-hidden="true"></span>
+          <span class="todo-text">Update market orders in Jita</span>
+        </div>
+        <div class="todo-item">
+          <span class="todo-dot" aria-hidden="true"></span>
+          <span class="todo-text">Sync character Marcus Vane</span>
+        </div>
+      </div>
+      <div class="sync-status" data-component="SyncStatus">
+        <span class="sync-dot" aria-hidden="true"></span>
+        <span>All characters synced <time class="num" datetime="PT2M">2</time> min ago</span>
+      </div>
+    </main>
+  </div>
+</section>
+
+<section class="module" data-module="assets" data-component="ModuleSketch">
+  <h2 class="module-title">Assets</h2>
+  <div class="shell">
+    <div class="topbar">
+      <svg class="topbar-icon" viewBox="0 0 24 24"><path d="M3 7l9-4 9 4-9 4zM3 7v10l9 4 9-4V7M12 11v10"/></svg>
+      <h3 class="page-title">Assets</h3>
+    </div>
+    <nav class="rail" aria-label="Navigation"></nav>
+    <main class="content">
+      <div class="search-bar" data-component="SearchBar">
+        <input type="search" class="search-input" placeholder="Search items..." aria-label="Search items">
+      </div>
+      <div class="filter-chips" data-component="FilterChips">
+        <button class="chip" data-active="true" type="button">Station</button>
+        <button class="chip" data-active="false" type="button">Structure</button>
+        <button class="chip" data-active="false" type="button">Container</button>
+      </div>
+      <div class="split">
+        <div class="split-main">
+          <div class="table-wrap" data-component="AssetsTable">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Location</th>
+                  <th>Quantity</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-selected="true">
+                  <td>Tritanium</td>
+                  <td>Jita IV - Moon 4</td>
+                  <td class="num">1 245 000</td>
+                  <td class="num">8.2M ISK</td>
+                </tr>
+                <tr>
+                  <td>Pyerite</td>
+                  <td>Jita IV - Moon 4</td>
+                  <td class="num">428 000</td>
+                  <td class="num">3.1M ISK</td>
+                </tr>
+                <tr>
+                  <td>Mexallon</td>
+                  <td>Perimeter - Tranquility</td>
+                  <td class="num">89 400</td>
+                  <td class="num">1.8M ISK</td>
+                </tr>
+                <tr>
+                  <td>Drake Blueprint</td>
+                  <td>Jita IV - Moon 4</td>
+                  <td class="num">1</td>
+                  <td class="num">42.0M ISK</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <aside class="split-side">
+          <div class="ph" data-component="AssetDetail">Item detail panel</div>
+        </aside>
+      </div>
+    </main>
+  </div>
+</section>
+
+<section class="module" data-module="mail" data-component="ModuleSketch">
+  <h2 class="module-title">Mail</h2>
+  <div class="shell">
+    <div class="topbar">
+      <svg class="topbar-icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+      <h3 class="page-title">Mail</h3>
+    </div>
+    <nav class="rail" aria-label="Navigation"></nav>
+    <main class="content" style="padding:0">
+      <div class="mail-split">
+        <div class="mail-list">
+          <div class="mail-tabs" data-component="MailTabs">
+            <button class="mail-tab" type="button" role="tab" aria-selected="true">Inbox</button>
+            <button class="mail-tab" type="button" role="tab" aria-selected="false">Mailing lists</button>
+          </div>
+          <div data-component="MailList">
+            <div class="mail-item" data-selected="true" data-read="false">
+              <div class="mail-header">
+                <div class="mail-sender"><span class="mail-unread" aria-label="unread"></span>Caldari Navy</div>
+                <div class="mail-time num">14:32</div>
+              </div>
+              <div class="mail-subject">Mission briefing: The Blockade</div>
+            </div>
+            <div class="mail-item" data-read="true">
+              <div class="mail-header">
+                <div class="mail-sender">Jita Trade Hub</div>
+                <div class="mail-time num">12:08</div>
+              </div>
+              <div class="mail-subject">Market order expired</div>
+            </div>
+            <div class="mail-item" data-read="false">
+              <div class="mail-header">
+                <div class="mail-sender"><span class="mail-unread" aria-label="unread"></span>Marcus Vane</div>
+                <div class="mail-time num">10:45</div>
+              </div>
+              <div class="mail-subject">Blueprint copies ready</div>
+            </div>
+            <div class="mail-item" data-read="true">
+              <div class="mail-header">
+                <div class="mail-sender">EVE System</div>
+                <div class="mail-time num">09:12</div>
+              </div>
+              <div class="mail-subject">Skill training completed</div>
+            </div>
+          </div>
+        </div>
+        <div class="mail-pane">
+          <div class="mail-detail-header" data-component="MailHeader">
+            <div style="font-size:16px;font-weight:600;margin-bottom:var(--space-xs)">Mission briefing: The Blockade</div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--color-text-secondary)">
+              <div>From: Caldari Navy</div>
+              <div class="num">14:32 · 31 Oct 2026</div>
+            </div>
+          </div>
+          <div class="ph" data-component="MailBody">Mail body content</div>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<section class="module" data-module="industry" data-component="ModuleSketch">
+  <h2 class="module-title">Industry</h2>
+  <div class="shell">
+    <div class="topbar">
+      <svg class="topbar-icon" viewBox="0 0 24 24"><path d="M3 21V10l6 4v-4l6 4V5h6v16zM3 21h18"/></svg>
+      <h3 class="page-title">Industry</h3>
+    </div>
+    <nav class="rail" aria-label="Navigation"></nav>
+    <main class="content">
+      <div class="tabs" data-component="IndustryTabs">
+        <button class="tab" type="button" role="tab" aria-selected="true">Active</button>
+        <button class="tab" type="button" role="tab" aria-selected="false">Ready</button>
+        <button class="tab" type="button" role="tab" aria-selected="false">History</button>
+      </div>
+      <div class="split">
+        <div class="split-main">
+          <div class="table-wrap" data-component="IndustryJobsTable">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Runs</th>
+                  <th>Ends</th>
+                  <th>Cost</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-selected="true">
+                  <td>Drake</td>
+                  <td class="num">5</td>
+                  <td class="num">2h 14m</td>
+                  <td class="num">124.5M ISK</td>
+                  <td><span class="status-badge" data-status="active">Active</span></td>
+                </tr>
+                <tr>
+                  <td>Scourge Heavy Missile</td>
+                  <td class="num">100</td>
+                  <td class="num">6h 32m</td>
+                  <td class="num">8.2M ISK</td>
+                  <td><span class="status-badge" data-status="active">Active</span></td>
+                </tr>
+                <tr>
+                  <td>Medium Shield Extender II</td>
+                  <td class="num">20</td>
+                  <td class="num">18m</td>
+                  <td class="num">42.8M ISK</td>
+                  <td><span class="status-badge" data-status="ready">Ready</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <aside class="split-side">
+          <div class="ph" data-component="MaterialList">Material requirements</div>
+        </aside>
+      </div>
+    </main>
+  </div>
+</section>
+
+<section class="module" data-module="market" data-component="ModuleSketch">
+  <h2 class="module-title">Market</h2>
+  <div class="shell">
+    <div class="topbar">
+      <svg class="topbar-icon" viewBox="0 0 24 24"><path d="M3 3v18h18M7 15l4-4 3 3 6-7"/></svg>
+      <h3 class="page-title">Market</h3>
+    </div>
+    <nav class="rail" aria-label="Navigation"></nav>
+    <main class="content">
+      <div class="table-wrap" data-component="MarketOrdersTable" style="margin-bottom:var(--space-lg)">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Side</th>
+              <th>Price</th>
+              <th>Volume remaining</th>
+              <th>Position</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Tritanium</td>
+              <td>Sell</td>
+              <td class="num">6.82 ISK</td>
+              <td class="num">842 000 / 1 000 000</td>
+              <td class="num">#3</td>
+            </tr>
+            <tr>
+              <td>Pyerite</td>
+              <td>Buy</td>
+              <td class="num">12.14 ISK</td>
+              <td class="num">124 000 / 500 000</td>
+              <td class="num">#8</td>
+            </tr>
+            <tr>
+              <td>Drake</td>
+              <td>Sell</td>
+              <td class="num">48.2M ISK</td>
+              <td class="num">2 / 5</td>
+              <td class="num">#1</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="background:var(--color-bg-container);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-md);margin-bottom:var(--space-md)" data-component="WatchedItems">
+        <h4 style="font-size:14px;font-weight:600;margin:0 0 var(--space-md)">Watched items</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--space-md)">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--space-sm);border:1px solid var(--color-border);border-radius:var(--radius-md)">
+            <div>
+              <div style="font-weight:500;font-size:13px">Mexallon</div>
+              <div style="font-size:12px;color:var(--color-text-secondary)" class="num">18.42 ISK</div>
+            </div>
+            <div class="sparkline" aria-label="Price trend"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--space-sm);border:1px solid var(--color-border);border-radius:var(--radius-md)">
+            <div>
+              <div style="font-weight:500;font-size:13px">Isogen</div>
+              <div style="font-size:12px;color:var(--color-text-secondary)" class="num">24.18 ISK</div>
+            </div>
+            <div class="sparkline" aria-label="Price trend"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--space-sm);border:1px solid var(--color-border);border-radius:var(--radius-md)">
+            <div>
+              <div style="font-weight:500;font-size:13px">Nocxium</div>
+              <div style="font-size:12px;color:var(--color-text-secondary)" class="num">1 842.0 ISK</div>
+            </div>
+            <div class="sparkline" aria-label="Price trend"></div>
+          </div>
+        </div>
+      </div>
+      <div class="note-strip" data-component="OrderNote">
+        <span>Orders are placed in the EVE client</span>
+        <button class="btn" type="button">Open in client</button>
+      </div>
+    </main>
+  </div>
+</section>
+
+<section class="module" data-module="killmail" data-component="ModuleSketch">
+  <h2 class="module-title">Killmail</h2>
+  <div class="shell">
+    <div class="topbar">
+      <svg class="topbar-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/></svg>
+      <h3 class="page-title">Killmail</h3>
+    </div>
+    <nav class="rail" aria-label="Navigation"></nav>
+    <main class="content">
+      <div class="split">
+        <div class="split-main">
+          <div class="table-wrap" data-component="KillmailList">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Ship</th>
+                  <th>System</th>
+                  <th>Time</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-selected="true">
+                  <td style="display:flex;align-items:center;gap:var(--space-sm)">
+                    <div class="ship-icon" aria-hidden="true"></div>
+                    <span>Drake</span>
+                  </td>
+                  <td>Jita</td>
+                  <td class="num">2h 14m ago</td>
+                  <td class="num">124.5M ISK</td>
+                </tr>
+                <tr>
+                  <td style="display:flex;align-items:center;gap:var(--space-sm)">
+                    <div class="ship-icon" aria-hidden="true"></div>
+                    <span>Caracal</span>
+                  </td>
+                  <td>Perimeter</td>
+                  <td class="num">4h 32m ago</td>
+                  <td class="num">42.8M ISK</td>
+                </tr>
+                <tr>
+                  <td style="display:flex;align-items:center;gap:var(--space-sm)">
+                    <div class="ship-icon" aria-hidden="true"></div>
+                    <span>Cormorant</span>
+                  </td>
+                  <td>Dodixie</td>
+                  <td class="num">1d 2h ago</td>
+                  <td class="num">8.2M ISK</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <aside class="split-side">
+          <div class="ph" data-component="KillmailDetail">Participants list</div>
+        </aside>
+      </div>
+    </main>
+  </div>
+</section>
+
+<section class="module" data-module="settings" data-component="ModuleSketch">
+  <h2 class="module-title">Settings</h2>
+  <div class="shell">
+    <div class="topbar">
+      <svg class="topbar-icon" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>
+      <h3 class="page-title">Settings</h3>
+    </div>
+    <nav class="rail" aria-label="Navigation"></nav>
+    <main class="content">
+      <div class="settings-section" data-component="CharactersSettings">
+        <h4 class="settings-title">Characters</h4>
+        <div class="settings-item">
+          <div class="portrait" aria-hidden="true"></div>
+          <div class="settings-label">Kadir Aylin</div>
+          <div class="settings-value"><span class="scope-badge">8 scopes</span></div>
+        </div>
+        <div class="settings-item">
+          <div class="portrait" aria-hidden="true"></div>
+          <div class="settings-label">Saya Okamoto</div>
+          <div class="settings-value"><span class="scope-badge">8 scopes</span></div>
+        </div>
+        <div class="settings-item">
+          <div class="portrait" aria-hidden="true"></div>
+          <div class="settings-label">Marcus Vane</div>
+          <div class="settings-value" style="color:var(--color-danger)">Missing scope: esi-skills.read_skills.v1</div>
+        </div>
+      </div>
+      <div class="settings-section" data-component="NotificationsSettings">
+        <h4 class="settings-title">Notifications</h4>
+        <div class="settings-item">
+          <div class="settings-label">Mail notifications</div>
+          <button class="toggle" type="button" role="switch" aria-checked="true" aria-label="Mail notifications"><span class="sr-only">Enabled</span></button>
+        </div>
+        <div class="settings-item">
+          <div class="settings-label">Industry job alerts</div>
+          <button class="toggle" type="button" role="switch" aria-checked="true" aria-label="Industry job alerts"><span class="sr-only">Enabled</span></button>
+        </div>
+        <div class="settings-item">
+          <div class="settings-label">Market order updates</div>
+          <button class="toggle" type="button" role="switch" aria-checked="false" aria-label="Market order updates"><span class="sr-only">Disabled</span></button>
+        </div>
+      </div>
+      <div class="settings-section" data-component="AppearanceSettings">
+        <h4 class="settings-title">Appearance</h4>
+        <div class="settings-item">
+          <div class="settings-label">Language</div>
+          <div class="settings-value">English</div>
+        </div>
+        <div class="settings-item">
+          <div class="settings-label">Theme</div>
+          <div class="settings-value">Light</div>
+        </div>
+      </div>
+      <div class="settings-section" data-component="DangerZone">
+        <div class="danger-zone">
+          <h4 class="danger-title">Danger zone</h4>
+          <p class="danger-text">Permanently delete your account and all associated data. This action cannot be undone.</p>
+          <button class="btn btn-danger" type="button">Delete account</button>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+</body>
+</html>
