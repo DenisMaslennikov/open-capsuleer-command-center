@@ -8,6 +8,19 @@ When to read: before starting any task and before opening a PR.
 - `feat/<slug>` — integration branch of a large feature; lives ≤ 1 week.
 - `task/<feat>/<id>` — atomic subtasks; their PR targets `feat/*`, never `main`.
 
+## Runners and untrusted code
+
+- `ci` runs on GitHub-hosted runners and is the default pipeline.
+- `self-hosted` runs on the ephemeral container runner attached to this repository: one container per
+  job, no host mounts, dropped capabilities, removed on exit. It exists for jobs that need more
+  machine than a hosted runner gives, not for speed.
+- The self-hosted runner executes only the repository owner's work. Fork pull requests never reach
+  it: the job condition rejects any head repository other than this one, and the repository setting
+  requires approval for all external contributors.
+- A pull request from a stranger is reviewed by a human first; after approval it runs on
+  GitHub-hosted runners. Granting the self-hosted runner to an outside pull request is not a review
+  decision, it is a security incident waiting to happen.
+
 ## Task
 
 1. One card = one subtask = one `files_allowed`.
