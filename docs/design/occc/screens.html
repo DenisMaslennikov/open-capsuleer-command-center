@@ -525,6 +525,56 @@ h2{font-size:18px;font-weight:600;margin:var(--space-xl) 0 var(--space-md);color
     </div>
     <nav class="rail" aria-label="Navigation"></nav>
     <main class="content">
+      <div data-component="MarketPicker" style="margin-bottom:var(--space-lg);position:relative">
+        <button type="button" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:var(--space-sm) var(--space-md);background:var(--color-bg-container);border:1px solid var(--color-border);border-radius:var(--radius-md);font:inherit;cursor:pointer;transition:border-color var(--motion-fast)" aria-expanded="false" aria-haspopup="listbox">
+          <span style="font-size:14px;font-weight:500">Jita IV-4 · station</span>
+          <svg style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div role="listbox" style="position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--color-bg-container);border:1px solid var(--color-border);border-radius:var(--radius-md);box-shadow:0 4px 12px rgba(31,35,40,.12);z-index:10;display:none">
+          <div role="option" data-component="MarketOption" data-market-type="station" data-market-current="true" style="display:grid;grid-template-columns:auto 1fr auto;gap:var(--space-sm);align-items:center;padding:var(--space-sm) var(--space-md);cursor:pointer;transition:background var(--motion-fast);border-bottom:1px solid var(--color-border)">
+            <span style="display:inline-flex;align-items:center;justify-content:center;padding:2px 6px;background:var(--color-primary-bg);color:var(--color-primary);border-radius:var(--radius-sm);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">station</span>
+            <div>
+              <div style="font-size:13px;font-weight:500">Jita IV-4</div>
+              <div style="font-size:12px;color:var(--color-text-secondary)">Jita</div>
+            </div>
+            <svg style="width:16px;height:16px;stroke:var(--color-primary);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24" aria-label="Current market"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+          <div role="option" data-component="MarketOption" data-market-type="station" style="display:grid;grid-template-columns:auto 1fr auto;gap:var(--space-sm);align-items:center;padding:var(--space-sm) var(--space-md);cursor:pointer;transition:background var(--motion-fast);border-bottom:1px solid var(--color-border)">
+            <span style="display:inline-flex;align-items:center;justify-content:center;padding:2px 6px;background:var(--color-primary-bg);color:var(--color-primary);border-radius:var(--radius-sm);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">station</span>
+            <div>
+              <div style="font-size:13px;font-weight:500">Amarr VIII (Oris)</div>
+              <div style="font-size:12px;color:var(--color-text-secondary)">Amarr</div>
+            </div>
+            <svg style="width:16px;height:16px;stroke:transparent;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+          <div role="option" data-component="MarketOption" data-market-type="structure" style="display:grid;grid-template-columns:auto 1fr auto;gap:var(--space-sm);align-items:center;padding:var(--space-sm) var(--space-md);cursor:pointer;transition:background var(--motion-fast);border-bottom:1px solid var(--color-border)">
+            <span style="display:inline-flex;align-items:center;justify-content:center;padding:2px 6px;background:color-mix(in srgb,var(--color-warning) 15%,transparent);color:var(--color-warning);border-radius:var(--radius-sm);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">structure</span>
+            <div>
+              <div style="font-size:13px;font-weight:500">Perimeter · Keepstar</div>
+              <div style="font-size:12px;color:var(--color-text-secondary)">Perimeter</div>
+            </div>
+            <svg style="width:16px;height:16px;stroke:transparent;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+          <div role="option" data-component="MarketOption" data-market-type="region" style="display:grid;grid-template-columns:auto 1fr auto;gap:var(--space-sm);align-items:center;padding:var(--space-sm) var(--space-md);cursor:pointer;transition:background var(--motion-fast);border-bottom:1px solid var(--color-border)">
+            <span style="display:inline-flex;align-items:center;justify-content:center;padding:2px 6px;background:color-mix(in srgb,var(--color-success) 15%,transparent);color:var(--color-success);border-radius:var(--radius-sm);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">region</span>
+            <div>
+              <div style="font-size:13px;font-weight:500">The Forge</div>
+              <div style="font-size:12px;color:var(--color-text-secondary)">Region-wide</div>
+            </div>
+            <svg style="width:16px;height:16px;stroke:transparent;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+          <div role="option" data-component="MarketOption" data-market-type="station" style="display:grid;grid-template-columns:auto 1fr auto;gap:var(--space-sm);align-items:center;padding:var(--space-sm) var(--space-md);cursor:pointer;transition:background var(--motion-fast)">
+            <span style="display:inline-flex;align-items:center;justify-content:center;padding:2px 6px;background:var(--color-primary-bg);color:var(--color-primary);border-radius:var(--radius-sm);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">station</span>
+            <div>
+              <div style="font-size:13px;font-weight:500">Dodixie IX-20</div>
+              <div style="font-size:12px;color:var(--color-text-secondary)">Dodixie</div>
+            </div>
+            <svg style="width:16px;height:16px;stroke:transparent;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <h4 style="font-size:14px;font-weight:600;margin:0 0 var(--space-sm);color:var(--color-text-secondary)">My orders · Jita IV-4</h4>
       <div class="table-wrap" data-component="MarketOrdersTable" style="margin-bottom:var(--space-lg)">
         <table class="table">
           <thead>
@@ -561,8 +611,9 @@ h2{font-size:18px;font-weight:600;margin:var(--space-xl) 0 var(--space-md);color
           </tbody>
         </table>
       </div>
+
+      <h4 style="font-size:14px;font-weight:600;margin:0 0 var(--space-sm);color:var(--color-text-secondary)">Watched items · Jita IV-4</h4>
       <div style="background:var(--color-bg-container);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-md);margin-bottom:var(--space-md)" data-component="WatchedItems">
-        <h4 style="font-size:14px;font-weight:600;margin:0 0 var(--space-md)">Watched items</h4>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--space-md)">
           <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--space-sm);border:1px solid var(--color-border);border-radius:var(--radius-md)">
             <div>
@@ -587,6 +638,7 @@ h2{font-size:18px;font-weight:600;margin:var(--space-xl) 0 var(--space-md);color
           </div>
         </div>
       </div>
+
       <div class="note-strip" data-component="OrderNote">
         <span>Orders are placed in the EVE client</span>
         <button class="btn" type="button">Open in client</button>
