@@ -1,0 +1,1 @@
+"""OpenCapsuleerCommandCenter backend application."""

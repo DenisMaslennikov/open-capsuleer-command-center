@@ -1,0 +1,20 @@
+EVE ONLINE GAME DATA — NOT COVERED BY THE AGPL
+
+The GNU Affero General Public License in LICENSE covers the source code of this application
+and nothing else.
+
+Game data made available by CCP hf. through ESI, the Static Data Export, the Image Export
+Collection, the image server and any CCP Marks is licensed to this project directly by CCP
+under the EVE Developer License Agreement (https://developers.eveonline.com/license-agreement)
+and is not sublicensable. Such material therefore must not be committed to this repository,
+bundled into a release, or redistributed under the AGPL or any other licence.
+
+Where such material is required at runtime, it is downloaded by the application into the
+git-ignored `data/` directory and remains subject to CCP's terms.
+
+Proprietary notice required by that agreement:
+
+  (c) 2014 CCP hf. All rights reserved. "EVE", "EVE Online", "CCP", and all related logos and
+  images are trademarks or registered trademarks of CCP hf.
+
+This application has been created under the EVE Developer License Agreement.

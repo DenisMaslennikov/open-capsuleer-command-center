@@ -1,0 +1,20 @@
+{
+  "app": { "title": "OpenCapsuleerCommandCenter" },
+  "nav": { "dashboard": "Dashboard" },
+  "dashboard": {
+    "title": "Command center",
+    "subtitle": "Attach characters to see skills, plans, jobs and assets from one place.",
+    "status": "Backend status",
+    "env": "Environment",
+    "esi": "EVE SSO",
+    "capabilities": "Known capabilities",
+    "configured": "configured",
+    "notConfigured": "not configured",
+    "loading": "Loading…",
+    "error": "The backend did not answer"
+  },
+  "legal": {
+    "ccpNotice": "© 2014 CCP hf. All rights reserved. \"EVE\", \"EVE Online\", \"CCP\", and all related logos and images are trademarks of CCP hf.",
+    "developerAgreement": "This application has been created under the EVE Developer License Agreement."
+  }
+}

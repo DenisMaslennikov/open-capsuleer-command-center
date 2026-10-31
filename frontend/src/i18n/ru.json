@@ -1,0 +1,20 @@
+{
+  "app": { "title": "OpenCapsuleerCommandCenter" },
+  "nav": { "dashboard": "Обзор" },
+  "dashboard": {
+    "title": "Командный центр",
+    "subtitle": "Подключите персонажей, чтобы видеть навыки, планы, производство и склады в одном месте.",
+    "status": "Состояние бэкенда",
+    "env": "Окружение",
+    "esi": "EVE SSO",
+    "capabilities": "Известные возможности",
+    "configured": "настроен",
+    "notConfigured": "не настроен",
+    "loading": "Загрузка…",
+    "error": "Бэкенд не ответил"
+  },
+  "legal": {
+    "ccpNotice": "© 2014 CCP hf. Все права защищены. \"EVE\", \"EVE Online\", \"CCP\" и связанные логотипы и изображения являются товарными знаками CCP hf.",
+    "developerAgreement": "Приложение создано в рамках EVE Developer License Agreement."
+  }
+}
