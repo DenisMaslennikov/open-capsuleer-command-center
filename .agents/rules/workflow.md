@@ -4,7 +4,11 @@ When to read: before starting any task and before opening a PR.
 
 ## Branches
 
-- `main` — through PRs only: one human approval, squash, linear history.
+- `main` — through PRs only: squash, linear history. The merge is performed by a human, never by an
+  agent, a bot or a scheduled job. GitHub does not require an approving review: in a single-owner
+  repository the author cannot approve their own pull request, so the approval counter would only
+  be bypassed by an administrator merge. The human-only merge and a visible reviewer report are the
+  replacement, not the counter.
 - `feat/<slug>` — integration branch of a large feature; lives ≤ 1 week.
 - `task/<feat>/<id>` — atomic subtasks; their PR targets `feat/*`, never `main`.
 
@@ -20,6 +24,14 @@ When to read: before starting any task and before opening a PR.
 - A pull request from a stranger is reviewed by a human first; after approval it runs on
   GitHub-hosted runners. Granting the self-hosted runner to an outside pull request is not a review
   decision, it is a security incident waiting to happen.
+
+## Review before merge
+
+- A pull request is opened with the reviewer's report attached: findings and, separately, the points
+  that only a human can settle. A merge without that report is a merge nobody reviewed.
+- The reviewer is advisory. It cannot block the merge on its own, and it cannot perform it.
+- The human merging decides which findings are fixed now, which become cards, and which are
+  rejected with a reason in the pull request.
 
 ## Task
 
