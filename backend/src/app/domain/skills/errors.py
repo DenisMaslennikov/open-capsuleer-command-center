@@ -22,12 +22,9 @@ class InvalidSkillLevelError(ValueError):
         Arguments:
             message: human-readable text naming the invalid level, shown verbatim
                 to downstream callers.
-
-        Raises:
-            Nothing; this is the error itself.
         """
 
-        raise NotImplementedError
+        super().__init__(message)
 
 
 class InvalidSkillRankError(ValueError):
@@ -43,9 +40,6 @@ class InvalidSkillRankError(ValueError):
         Arguments:
             message: human-readable text naming the invalid rank, shown verbatim
                 to downstream callers.
-
-        Raises:
-            Nothing; this is the error itself.
         """
 
-        raise NotImplementedError
+        super().__init__(message)
