@@ -6,7 +6,17 @@ import json
 from pathlib import Path
 
 import pytest
-from sqlalchemy import BigInteger, Column, Float, ForeignKey, MetaData, Numeric, Table, Text
+from sqlalchemy import (
+    BigInteger,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    MetaData,
+    Numeric,
+    Table,
+    Text,
+)
 
 from app.db import schema_gate
 
@@ -181,3 +191,53 @@ def test_foreign_key_to_wrong_table_fails(contract_path: Path) -> None:
     contract_path.write_text(json.dumps(contract), encoding="utf-8")
     errors = schema_gate.run(contract_path, metadata)
     assert any("foreign key points at accounts" in error for error in errors)
+
+
+def test_timestamptz_with_timezone_passes(contract_path: Path) -> None:
+    contract = json.loads(contract_path.read_text(encoding="utf-8"))
+    contract["schema"]["aggregates"][1]["tables"][0]["columns"].append(
+        {"name": "observed_at", "type": "timestamptz", "pk": False, "nullable": False}
+    )
+    contract_path.write_text(json.dumps(contract), encoding="utf-8")
+    metadata = MetaData()
+    Table(
+        "accounts",
+        metadata,
+        Column("id", BigInteger, primary_key=True),
+        Column("email", Text, nullable=False),
+    )
+    Table(
+        "market_orders",
+        metadata,
+        Column("id", BigInteger, primary_key=True),
+        Column("account_id", BigInteger, nullable=False),
+        Column("price", Numeric(20, 2), nullable=False),
+        Column("observed_at", DateTime(timezone=True), nullable=False),
+    )
+    errors = schema_gate.run(contract_path, metadata)
+    assert not any("observed_at" in error for error in errors)
+
+
+def test_timestamp_without_timezone_fails(contract_path: Path) -> None:
+    contract = json.loads(contract_path.read_text(encoding="utf-8"))
+    contract["schema"]["aggregates"][1]["tables"][0]["columns"].append(
+        {"name": "observed_at", "type": "timestamptz", "pk": False, "nullable": False}
+    )
+    contract_path.write_text(json.dumps(contract), encoding="utf-8")
+    metadata = MetaData()
+    Table(
+        "accounts",
+        metadata,
+        Column("id", BigInteger, primary_key=True),
+        Column("email", Text, nullable=False),
+    )
+    Table(
+        "market_orders",
+        metadata,
+        Column("id", BigInteger, primary_key=True),
+        Column("account_id", BigInteger, nullable=False),
+        Column("price", Numeric(20, 2), nullable=False),
+        Column("observed_at", DateTime(), nullable=False),
+    )
+    errors = schema_gate.run(contract_path, metadata)
+    assert any("must be timestamptz" in error for error in errors)

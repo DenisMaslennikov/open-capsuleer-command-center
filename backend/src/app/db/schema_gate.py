@@ -29,7 +29,19 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import MetaData
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    Date,
+    DateTime,
+    Float,
+    Integer,
+    LargeBinary,
+    MetaData,
+    Numeric,
+    String,
+    Text,
+)
 
 from app.db.base import Base
 
@@ -103,22 +115,47 @@ def rendered_type(column: Any) -> str:
 
 
 def type_matches(column: Any, contract_type: str) -> bool:
-    rendered = rendered_type(column)
-    contract_type = normalise_type(contract_type)
-    if contract_type.endswith("[]"):
-        return rendered.endswith("[]") or rendered.startswith("array(")
-    if contract_type.startswith("numeric"):
-        if not rendered.startswith("numeric"):
+    """Compare a column with the contract type by introspection, not by its rendered name.
+
+    SQLAlchemy renders `DateTime(timezone=True)` as `DATETIME`, which no string alias catches, so
+    the timezone flag is read from the type itself.
+    """
+    sql_type = column.type
+    wanted = normalise_type(contract_type)
+    if wanted.endswith("[]"):
+        return hasattr(sql_type, "item_type")
+    if wanted.startswith("numeric"):
+        if not isinstance(sql_type, Numeric):
             return False
-        return rendered.replace("numeric(", "").replace(")", "") == contract_type.replace(
-            "numeric(", ""
-        ).replace(")", "")
-    if contract_type.startswith("varchar"):
-        return rendered.startswith(("varchar", "string"))
-    if contract_type.startswith("char"):
-        return rendered.startswith("char")
-    aliases = TYPE_ALIASES.get(contract_type, {contract_type})
-    return any(rendered.startswith(alias) or rendered == alias for alias in aliases)
+        numbers = wanted.replace("numeric(", "").replace(")", "").split(",")
+        precision = int(numbers[0]) if numbers and numbers[0].isdigit() else None
+        scale = int(numbers[1]) if len(numbers) > 1 and numbers[1].isdigit() else None
+        return sql_type.precision == precision and sql_type.scale == scale
+    if wanted.startswith("varchar"):
+        return isinstance(sql_type, String) and not isinstance(sql_type, Text)
+    if wanted == "text":
+        return isinstance(sql_type, (Text, String))
+    if wanted == "bigint":
+        return isinstance(sql_type, BigInteger)
+    if wanted == "integer":
+        return isinstance(sql_type, Integer) and not isinstance(sql_type, BigInteger)
+    if wanted == "smallint":
+        return getattr(sql_type, "__class__", type(sql_type)).__name__.lower().startswith("small")
+    if wanted == "boolean":
+        return isinstance(sql_type, Boolean)
+    if wanted == "timestamptz":
+        return isinstance(sql_type, DateTime) and bool(sql_type.timezone)
+    if wanted == "date":
+        return isinstance(sql_type, Date) and not isinstance(sql_type, DateTime)
+    if wanted == "jsonb":
+        return type(sql_type).__name__.lower() == "jsonb"
+    if wanted == "bytea":
+        return isinstance(sql_type, LargeBinary)
+    if wanted == "uuid":
+        return type(sql_type).__name__.lower() == "uuid"
+    if wanted in ("double precision", "float", "real"):
+        return isinstance(sql_type, Float)
+    return False
 
 
 def check_completeness(contract: dict[str, Any], metadata: MetaData) -> list[str]:
@@ -195,10 +232,47 @@ def check_type_rules(metadata: MetaData, declared: dict[str, dict[str, Any]]) ->
                 ("largebinary", "bytea")
             ):
                 errors.append(f"{table.name}.{column.name}: encrypted secrets must be bytea")
-            if column.name.endswith("_at") and not rendered.startswith(
-                ("datetime(timezone=true)", "timestamp(timezone=true)")
+            if column.name.endswith("_at") and not (
+                isinstance(column.type, DateTime) and bool(column.type.timezone)
             ):
                 errors.append(f"{table.name}.{column.name}: *_at must be timestamptz")
+    return errors
+
+
+def check_composite_keys(contract: dict[str, Any], metadata: MetaData) -> list[str]:
+    """A declared table-level foreign key must exist in the model with the same target and rule."""
+    errors: list[str] = []
+    for name, declared in contract_tables(contract).items():
+        for composite in declared.get("foreign_keys") or []:
+            table = metadata.tables.get(name)
+            if table is None:
+                continue
+            wanted_columns = tuple(composite.get("columns") or [])
+            wanted_target = composite.get("references_table")
+            wanted_on_delete = str(composite.get("on_delete") or "cascade").lower()
+            found = False
+            for constraint in table.foreign_key_constraints:
+                columns = tuple(c.name for c in constraint.columns)
+                if columns != wanted_columns:
+                    continue
+                target = {element.column.table.name for element in constraint.elements}
+                on_delete = str(constraint.ondelete or "no action").lower()
+                if target != {wanted_target}:
+                    errors.append(
+                        f"{name}{wanted_columns}: composite foreign key points at "
+                        f"{sorted(target)}, contract declares {wanted_target}"
+                    )
+                elif on_delete != wanted_on_delete:
+                    errors.append(
+                        f"{name}{wanted_columns}: composite foreign key ON DELETE "
+                        f"{on_delete}, contract declares {wanted_on_delete}"
+                    )
+                found = True
+            if not found:
+                errors.append(
+                    f"{name}: composite foreign key {wanted_columns} -> {wanted_target} "
+                    "is declared in the contract but missing in the model"
+                )
     return errors
 
 
@@ -206,6 +280,7 @@ def check_relations(contract: dict[str, Any], metadata: MetaData) -> list[str]:
     errors: list[str] = []
     lifetime = contract_lifetime_of(contract)
     aggregate_of = contract_aggregate_of(contract)
+    errors += check_composite_keys(contract, metadata)
     for table in metadata.sorted_tables:
         for column in table.columns:
             for foreign_key in column.foreign_keys:
@@ -261,6 +336,7 @@ def check_ownership(contract: dict[str, Any], metadata: MetaData) -> list[str]:
     errors: list[str] = []
     lifetime = contract_lifetime_of(contract)
     aggregate_of = contract_aggregate_of(contract)
+    errors += check_composite_keys(contract, metadata)
     for table in metadata.sorted_tables:
         aggregate = aggregate_of.get(table.name)
         if aggregate is None:
@@ -308,7 +384,12 @@ def check_account_reachability(metadata: MetaData, lifetime: dict[str, str]) -> 
 
 def run(contract_path: Path, metadata: MetaData | None = None) -> list[str]:
     contract = load_contract(contract_path)
-    metadata = metadata if metadata is not None else Base.metadata
+    if metadata is None:
+        # Importing a dbhelpers module registers its models; do it before any table is inspected,
+        # otherwise the check sees a half-populated metadata and reports phantom missing models.
+        for aggregate in contract.get("aggregates", []):
+            module_exists(aggregate.get("id", ""))
+        metadata = Base.metadata
     errors = []
     errors += check_completeness(contract, metadata)
     errors += check_columns(contract, metadata)
