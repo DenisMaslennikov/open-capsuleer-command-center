@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OCCC · Application shell (s5-t1)</title>
+<!-- Light theme only, per owner (s5-t1). Custom properties mirror proposed token names; new ones are listed in the handoff. -->
+<style>
+:root{
+  --color-bg-layout:#f4f8fd; --color-bg-rail:#eef4fc; --color-bg-container:#ffffff;
+  --color-border:#e2ecf8; --color-primary:#2f6fed; --color-primary-hover:#245cd0;
+  --color-text:#1f2328; --color-text-secondary:#6b7280;
+  --color-skill-learned:#2f9e44; --color-skill-queued:#2f6fed;
+  --color-skill-next:#d98324; --color-skill-unreachable:#8a94a6;
+  --color-primary-bg:color-mix(in srgb,var(--color-primary) 10%,transparent);
+  --color-primary-bg-hover:color-mix(in srgb,var(--color-primary) 6%,transparent);
+  --shadow-sm:0 1px 2px rgba(31,35,40,.06);
+  --radius-sm:4px; --radius-md:8px; --radius-lg:12px;
+  --space-xxs:4px; --space-xs:8px; --space-sm:12px; --space-md:16px; --space-lg:24px; --space-xl:32px;
+  --font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-mono:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
+  --size-topbar:56px; --size-rail-expanded:232px; --size-rail-collapsed:64px; --size-icon:18px;
+  --motion-fast:120ms; --motion-base:180ms;
+}
+*{box-sizing:border-box}
+body{margin:0;padding:var(--space-lg);background:var(--color-bg-layout);color:var(--color-text);
+  font:400 14px/1.45 var(--font-family)}
+.spec-title{font-size:20px;font-weight:600;margin:0 0 var(--space-xs)}
+.caption{margin:var(--space-lg) 0 var(--space-xs);font-size:12px;font-weight:500;color:var(--color-text-secondary)}
+.ru{color:var(--color-text-secondary)}
+.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+:focus-visible,.is-focus-demo{outline:2px solid var(--color-primary);outline-offset:2px}
+
+.shell{display:grid;grid-template-rows:var(--size-topbar) 1fr;grid-template-columns:var(--size-rail-expanded) 1fr;
+  height:440px;border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden;
+  background:var(--color-bg-layout);box-shadow:var(--shadow-sm)}
+.shell--collapsed{grid-template-columns:var(--size-rail-collapsed) 1fr}
+
+.topbar{grid-column:1/-1;display:flex;align-items:center;gap:var(--space-md);padding-right:var(--space-md);
+  background:var(--color-bg-container);border-bottom:1px solid var(--color-border)}
+.brand{display:flex;align-items:center;gap:var(--space-xs);width:var(--size-rail-expanded);padding:0 var(--space-sm);
+  height:100%;background:var(--color-bg-rail);border-right:1px solid var(--color-border)}
+.shell--collapsed .brand{width:var(--size-rail-collapsed);justify-content:center;padding:0}
+.wordmark{font-weight:600;font-size:16px;letter-spacing:.08em;color:var(--color-primary)}
+.burger{display:inline-grid;place-items:center;width:36px;height:36px;padding:0;border:0;border-radius:var(--radius-md);
+  background:transparent;color:var(--color-text);cursor:pointer;transition:background var(--motion-fast)}
+.burger:hover{background:var(--color-primary-bg-hover);color:var(--color-primary-hover)}
+.page-title{margin:0;font-size:16px;font-weight:600}
+.topbar-end{margin-left:auto;display:flex;align-items:center;gap:var(--space-sm)}
+
+.seg{display:inline-flex;gap:2px;margin:0;padding:2px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-bg-rail)}
+.seg input{position:absolute;opacity:0;width:1px;height:1px}
+.seg label{padding:var(--space-xxs) 10px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;
+  color:var(--color-text-secondary);cursor:pointer;transition:background var(--motion-fast),color var(--motion-fast)}
+.seg label:hover{color:var(--color-primary-hover)}
+.seg input:checked+label{background:var(--color-bg-container);color:var(--color-text);box-shadow:var(--shadow-sm)}
+.seg input:focus-visible+label{outline:2px solid var(--color-primary);outline-offset:1px}
+
+.sync{display:inline-flex;align-items:center;gap:var(--space-xs);height:28px;padding:0 var(--space-sm);
+  border:1px solid var(--color-border);border-radius:var(--radius-lg);background:var(--color-bg-container);font-size:13px}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--color-skill-learned)}
+
+.rail{background:var(--color-bg-rail);border-right:1px solid var(--color-border);padding:var(--space-sm) var(--space-xs)}
+.rail ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav-item{position:relative;display:flex;align-items:center;gap:var(--space-sm);height:36px;padding:0 var(--space-sm);
+  border-radius:var(--radius-md);color:var(--color-text);text-decoration:none;font-size:13px;white-space:nowrap;
+  transition:background var(--motion-fast),color var(--motion-fast)}
+.nav-item svg{flex:none;width:var(--size-icon);height:var(--size-icon)}
+.nav-item:hover{background:var(--color-primary-bg-hover);color:var(--color-primary-hover)}
+.nav-item[aria-current="page"]{background:var(--color-primary-bg);color:var(--color-primary);font-weight:500}
+.nav-item[aria-current="page"]::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:2px;
+  border-radius:var(--radius-sm);background:var(--color-primary)}
+.nav-item .ru{font-weight:400}
+[data-nav="collapsed"]{padding:var(--space-sm) var(--space-xs)}
+[data-nav="collapsed"] .nav-item{justify-content:center;padding:0}
+[data-nav="collapsed"] .nav-item::after{content:attr(data-tip);position:absolute;left:calc(100% + var(--space-xs));top:50%;
+  transform:translateY(-50%);padding:var(--space-xxs) var(--space-xs);border-radius:var(--radius-sm);
+  background:var(--color-text);color:var(--color-bg-container);font-size:12px;font-weight:400;white-space:nowrap;
+  opacity:0;pointer-events:none;z-index:2;transition:opacity var(--motion-fast)}
+[data-nav="collapsed"] .nav-item:hover::after,[data-nav="collapsed"] .nav-item:focus-visible::after,
+[data-nav="collapsed"] .nav-item.is-tip-demo::after{opacity:1}
+
+.content{padding:var(--space-lg);overflow:hidden}
+.card{background:var(--color-bg-container);border:1px solid var(--color-border);border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-sm);padding:var(--space-lg);color:var(--color-text-secondary);min-height:160px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-burger" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 6h16M4 12h9M4 18h16M16 9l3 3-3 3"/></symbol>
+    <symbol id="i-dashboard" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol>
+    <symbol id="i-skills" viewBox="0 0 24 24"><path d="M3 5h6a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H3zM21 5h-6a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h7z"/></symbol>
+    <symbol id="i-assets" viewBox="0 0 24 24"><path d="M3 7l9-4 9 4-9 4zM3 7v10l9 4 9-4V7M12 11v10"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></symbol>
+    <symbol id="i-industry" viewBox="0 0 24 24"><path d="M3 21V10l6 4v-4l6 4V5h6v16zM3 21h18"/></symbol>
+    <symbol id="i-market" viewBox="0 0 24 24"><path d="M3 3v18h18M7 15l4-4 3 3 6-7"/></symbol>
+    <symbol id="i-killmail" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol>
+  </defs>
+</svg>
+<style>svg use{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.burger svg,.nav-item svg{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}</style>
+
+<h1 class="spec-title">Application shell · Оболочка приложения</h1>
+
+<p class="caption">1 · data-nav="expanded" — 232 px rail, burger shown with its focus ring</p>
+<div class="shell" data-component="AppShell">
+  <header class="topbar" data-component="TopBar">
+    <div class="brand">
+      <button class="burger is-focus-demo" type="button" data-component="BurgerButton" aria-expanded="true"
+        aria-controls="nav-expanded" aria-label="Collapse navigation · Свернуть меню"><svg width="20" height="20"><use href="#i-burger"/></svg></button>
+      <span class="wordmark">OCCC</span>
+    </div>
+    <h2 class="page-title">Skill plan · <span class="ru" lang="ru">План обучения</span></h2>
+    <div class="topbar-end">
+      <fieldset class="seg" data-component="CharacterSwitcher">
+        <legend class="sr-only">Characters · <span lang="ru">Персонажи</span></legend>
+        <input type="radio" id="cs1-all" name="cs1" checked><label for="cs1-all">All · <span lang="ru">Все</span></label>
+        <input type="radio" id="cs1-sub" name="cs1"><label for="cs1-sub">Subset · <span lang="ru">Выбор</span></label>
+        <input type="radio" id="cs1-one" name="cs1"><label for="cs1-one">One · <span lang="ru">Один</span></label>
+      </fieldset>
+      <span class="sync" data-component="SyncBadge" role="status">
+        <span class="sync-dot" aria-hidden="true"></span>
+        <span>synced <time class="num" datetime="PT4M">4</time> min ago · <span class="ru" lang="ru">обновлено <span class="num">4</span> мин назад</span></span>
+      </span>
+    </div>
+  </header>
+  <nav class="rail" id="nav-expanded" data-component="SideNav" data-nav="expanded" aria-label="Modules · Модули">
+    <ul>
+      <li><a class="nav-item" data-component="NavItem" href="#dashboard"><svg><use href="#i-dashboard"/></svg><span>Dashboard · <span class="ru" lang="ru">Сводка</span></span></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#skills" aria-current="page"><svg><use href="#i-skills"/></svg><span>Skills · <span class="ru" lang="ru">Навыки</span></span></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#assets"><svg><use href="#i-assets"/></svg><span>Assets · <span class="ru" lang="ru">Имущество</span></span></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#mail"><svg><use href="#i-mail"/></svg><span>Mail · <span class="ru" lang="ru">Почта</span></span></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#industry"><svg><use href="#i-industry"/></svg><span>Industry · <span class="ru" lang="ru">Производство</span></span></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#market"><svg><use href="#i-market"/></svg><span>Market · <span class="ru" lang="ru">Рынок</span></span></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#killmail"><svg><use href="#i-killmail"/></svg><span>Killmail · <span class="ru" lang="ru">Киллмейлы</span></span></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#settings"><svg><use href="#i-settings"/></svg><span>Settings · <span class="ru" lang="ru">Настройки</span></span></a></li>
+    </ul>
+  </nav>
+  <main class="content"><div class="card">Page content slot · <span lang="ru">Область страницы</span></div></main>
+</div>
+
+<p class="caption">2 · data-nav="collapsed" — 64 px rail, icons only, tooltip pinned on "Skills" for review</p>
+<div class="shell shell--collapsed" data-component="AppShell">
+  <header class="topbar" data-component="TopBar">
+    <div class="brand">
+      <button class="burger" type="button" data-component="BurgerButton" aria-expanded="false"
+        aria-controls="nav-collapsed" aria-label="Expand navigation · Развернуть меню"><svg width="20" height="20"><use href="#i-expand"/></svg></button>
+    </div>
+    <h2 class="page-title">Skill plan · <span class="ru" lang="ru">План обучения</span></h2>
+    <div class="topbar-end">
+      <fieldset class="seg" data-component="CharacterSwitcher">
+        <legend class="sr-only">Characters · <span lang="ru">Персонажи</span></legend>
+        <input type="radio" id="cs2-all" name="cs2" checked><label for="cs2-all">All · <span lang="ru">Все</span></label>
+        <input type="radio" id="cs2-sub" name="cs2"><label for="cs2-sub">Subset · <span lang="ru">Выбор</span></label>
+        <input type="radio" id="cs2-one" name="cs2"><label for="cs2-one">One · <span lang="ru">Один</span></label>
+      </fieldset>
+      <span class="sync" data-component="SyncBadge" role="status">
+        <span class="sync-dot" aria-hidden="true"></span>
+        <span>synced <time class="num" datetime="PT4M">4</time> min ago · <span class="ru" lang="ru">обновлено <span class="num">4</span> мин назад</span></span>
+      </span>
+    </div>
+  </header>
+  <nav class="rail" id="nav-collapsed" data-component="SideNav" data-nav="collapsed" aria-label="Modules · Модули">
+    <ul>
+      <li><a class="nav-item" data-component="NavItem" href="#dashboard" title="Dashboard · Сводка" data-tip="Dashboard · Сводка" aria-label="Dashboard · Сводка"><svg aria-hidden="true"><use href="#i-dashboard"/></svg></a></li>
+      <li><a class="nav-item is-tip-demo" data-component="NavItem" href="#skills" aria-current="page" title="Skills · Навыки" data-tip="Skills · Навыки" aria-label="Skills · Навыки"><svg aria-hidden="true"><use href="#i-skills"/></svg></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#assets" title="Assets · Имущество" data-tip="Assets · Имущество" aria-label="Assets · Имущество"><svg aria-hidden="true"><use href="#i-assets"/></svg></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#mail" title="Mail · Почта" data-tip="Mail · Почта" aria-label="Mail · Почта"><svg aria-hidden="true"><use href="#i-mail"/></svg></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#industry" title="Industry · Производство" data-tip="Industry · Производство" aria-label="Industry · Производство"><svg aria-hidden="true"><use href="#i-industry"/></svg></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#market" title="Market · Рынок" data-tip="Market · Рынок" aria-label="Market · Рынок"><svg aria-hidden="true"><use href="#i-market"/></svg></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#killmail" title="Killmail · Киллмейлы" data-tip="Killmail · Киллмейлы" aria-label="Killmail · Киллмейлы"><svg aria-hidden="true"><use href="#i-killmail"/></svg></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#settings" title="Settings · Настройки" data-tip="Settings · Настройки" aria-label="Settings · Настройки"><svg aria-hidden="true"><use href="#i-settings"/></svg></a></li>
+    </ul>
+  </nav>
+  <main class="content"><div class="card">Page content slot · <span lang="ru">Область страницы</span></div></main>
+</div>
+</body>
+</html>
