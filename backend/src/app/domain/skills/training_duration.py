@@ -7,6 +7,7 @@ per minute.
 """
 
 from datetime import timedelta
+import math
 
 from app.domain.skills.errors import (
     InvalidAccumulatedSkillSpError,
@@ -41,15 +42,16 @@ def skill_training_duration(
         InvalidSkillLevelError: when ``target_level`` is outside 1..5.
         InvalidSkillRankError: when ``rank`` is below 1.
         InvalidAccumulatedSkillSpError: when ``accumulated_sp`` is negative.
-        InvalidSkillSpeedError: when ``sp_per_minute`` is not positive.
+        InvalidSkillSpeedError: when ``sp_per_minute`` is not a finite
+            positive number.
     """
 
     if target_level < 1 or target_level > 5:
         raise InvalidSkillLevelError(f"level {target_level} outside 1..5")
     if accumulated_sp < 0:
         raise InvalidAccumulatedSkillSpError(f"accumulated_sp {accumulated_sp} below 0")
-    if sp_per_minute <= 0:
-        raise InvalidSkillSpeedError(f"sp_per_minute {sp_per_minute} not positive")
+    if not math.isfinite(sp_per_minute) or sp_per_minute <= 0:
+        raise InvalidSkillSpeedError(f"sp_per_minute {sp_per_minute} not a positive finite number")
 
     total_sp = accumulated_skill_sp(rank=rank, level=target_level)
     remaining_sp = max(total_sp - accumulated_sp, 0)
