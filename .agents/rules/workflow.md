@@ -85,7 +85,12 @@ When debt is deliberately deferred by that decision, it must be visible, not sil
 
 ## Limits
 
-attempts per subtask: 4 · arbiter calls: 2 · phase: 45 min · budget: `~/.config/cascade/roles.yaml`
+**No limits by default.** No cost cap, no reasoning cap, no phase timer: limits are decided later, from
+measured statistics, each as its own card. Reasoning that looks expensive is normal behaviour, not a
+loop. `run_role.py --budget` is an operator choice, off unless given.
+
+What remains is loop protection, not policy: attempts per subtask (4) and arbiter calls (2) stop a run
+that is not progressing. Changing them is a card like anything else.
 
 ## New rule
 
