@@ -1,13 +1,18 @@
 """Time needed to train a skill level at a given speed.
 
 The estimate is the skill points still missing for the target level divided
-by the training speed. The missing points come from the SP table totals, the
-speed from the attribute rule; both live in sibling modules of this package.
+by the training speed. The missing points come from the SP table totals in
+the sibling ``sp_table`` module; the speed is passed in by the caller in SP
+per minute.
 """
 
 from datetime import timedelta
 
-from app.domain.skills.errors import InvalidAccumulatedSkillSpError, InvalidSkillSpeedError
+from app.domain.skills.errors import (
+    InvalidAccumulatedSkillSpError,
+    InvalidSkillLevelError,
+    InvalidSkillSpeedError,
+)
 from app.domain.skills.sp_table import accumulated_skill_sp
 
 __all__ = ["skill_training_duration"]
@@ -39,6 +44,8 @@ def skill_training_duration(
         InvalidSkillSpeedError: when ``sp_per_minute`` is not positive.
     """
 
+    if target_level < 1 or target_level > 5:
+        raise InvalidSkillLevelError(f"level {target_level} outside 1..5")
     if accumulated_sp < 0:
         raise InvalidAccumulatedSkillSpError(f"accumulated_sp {accumulated_sp} below 0")
     if sp_per_minute <= 0:
