@@ -17,9 +17,6 @@ async def meta() -> dict[str, object]:
     return {
         "env": settings.env,
         "esi_configured": settings.eve_sso_configured,
-        "capabilities": {
-            scope: sorted(cap.value for cap in caps)
-            for scope, caps in SCOPE_TO_CAPABILITIES.items()
-        },
+        "capabilities": {scope: sorted(cap.value for cap in caps) for scope, caps in SCOPE_TO_CAPABILITIES.items()},
         "all_capabilities": sorted(cap.value for cap in Capability),
     }

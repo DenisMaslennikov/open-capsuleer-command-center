@@ -79,6 +79,4 @@ def skill_sp_to_next_level(*, rank: int, level: int) -> int:
         raise InvalidSkillLevelError(f"level {level} outside 1..4")
     if rank < 1:
         raise InvalidSkillRankError(f"rank {rank} below 1")
-    return accumulated_skill_sp(rank=rank, level=level + 1) - accumulated_skill_sp(
-        rank=rank, level=level
-    )
+    return accumulated_skill_sp(rank=rank, level=level + 1) - accumulated_skill_sp(rank=rank, level=level)

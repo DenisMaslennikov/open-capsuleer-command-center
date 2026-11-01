@@ -20,6 +20,4 @@ def test_capabilities_are_unioned_across_scopes() -> None:
 
 
 def test_scope_lookup_inverts_the_registry() -> None:
-    assert scopes_for({Capability.ASSETS_CORP}) == frozenset(
-        {"esi-assets.read_corporation_assets.v1"}
-    )
+    assert scopes_for({Capability.ASSETS_CORP}) == frozenset({"esi-assets.read_corporation_assets.v1"})
