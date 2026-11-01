@@ -28,6 +28,30 @@ DURATION_CASES = (
         datetime.timedelta(days=35, hours=13, minutes=20),
         id="rank5-level5-fresh",
     ),
+    pytest.param(
+        1,
+        1,
+        0,
+        0.5,
+        datetime.timedelta(hours=8, minutes=20),
+        id="rank1-level1-fresh-slow-speed",
+    ),
+    pytest.param(
+        1,
+        2,
+        1000,
+        0.25,
+        datetime.timedelta(days=1, hours=3, minutes=40),
+        id="rank1-level2-partial-slow-speed",
+    ),
+    pytest.param(
+        2,
+        3,
+        0,
+        0.001,
+        datetime.timedelta(days=11111, hours=2, minutes=40),
+        id="rank2-level3-fresh-very-slow-speed",
+    ),
 )
 
 
@@ -82,21 +106,9 @@ def test_invalid_skill_speed_error_is_a_value_error() -> None:
     assert issubclass(InvalidSkillSpeedError, ValueError)
 
 
-def test_level_above_the_ladder_propagates_the_level_error() -> None:
-    with pytest.raises(InvalidSkillLevelError) as excinfo:
-        skill_training_duration(
-            rank=1,
-            target_level=6,
-            accumulated_sp=0,
-            sp_per_minute=25.0,
-        )
-
-    assert excinfo.type is InvalidSkillLevelError
-
-
-@pytest.mark.parametrize("target_level", [0, -1])
-def test_level_below_the_ladder_propagates_the_level_error(target_level: int) -> None:
-    with pytest.raises(InvalidSkillLevelError) as excinfo:
+@pytest.mark.parametrize("target_level", [6, 0, -1])
+def test_level_outside_the_ladder_is_rejected_by_the_local_guard(target_level: int) -> None:
+    with pytest.raises(InvalidSkillLevelError, match=rf"level {target_level} outside 1\.\.5") as excinfo:
         skill_training_duration(
             rank=1,
             target_level=target_level,
