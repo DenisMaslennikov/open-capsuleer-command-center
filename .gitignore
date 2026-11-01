@@ -15,5 +15,7 @@ data/
 .idea/
 .vscode/
 
+# cascade planning artefact, not a repository file
+plan.json
 # design renders are local, not artifacts
 docs/design/**/*.png

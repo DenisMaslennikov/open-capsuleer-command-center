@@ -9,7 +9,9 @@ export default defineConfig({
     host: "0.0.0.0",
     port: 5173,
     strictPort: true,
-    allowedHosts: ["ai-sandbox.service", ".service", "localhost"],
+    // localhost first: the repository is cloned and run by people on their own machines.
+    // the sandbox hosts stay so the deployment on ai-sandbox keeps working.
+    allowedHosts: ["localhost", "127.0.0.1", ".localhost", "ai-sandbox.service", ".service"],
     proxy: {
       "/api": { target: proxyTarget, changeOrigin: true },
     },

@@ -28,7 +28,7 @@ cp .env.example .env          # fill in the EVE application credentials
 docker compose up --build     # db + backend + frontend dev server
 ```
 
-Then open <http://ai-sandbox.service:5173/>. The backend is on port 8000, PostgreSQL on 5433.
+Then open <http://localhost:5173/>. The backend is on port 8000, PostgreSQL on 5433.
 
 ## Accounts, characters and scopes
 

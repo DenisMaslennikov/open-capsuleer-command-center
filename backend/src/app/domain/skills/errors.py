@@ -6,7 +6,7 @@ the step function) and a skill rank below 1. Both subclass ValueError so
 callers can catch the whole family with a single except clause.
 """
 
-__all__ = ["InvalidSkillLevelError", "InvalidSkillRankError"]
+__all__ = ["InvalidSkillAttributeError", "InvalidSkillLevelError", "InvalidSkillRankError"]
 
 
 class InvalidSkillLevelError(ValueError):
@@ -39,6 +39,24 @@ class InvalidSkillRankError(ValueError):
 
         Arguments:
             message: human-readable text naming the invalid rank, shown verbatim
+                to downstream callers.
+        """
+
+        super().__init__(message)
+
+
+class InvalidSkillAttributeError(ValueError):
+    """Raised when a skill attribute is zero or negative.
+
+    The message names the offending attribute so a caller can surface it verbatim
+    to the user.
+    """
+
+    def __init__(self, message: str) -> None:
+        """Create the error.
+
+        Arguments:
+            message: human-readable text naming the invalid attribute, shown verbatim
                 to downstream callers.
         """
 
