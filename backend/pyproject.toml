@@ -38,11 +38,31 @@ asyncio_default_fixture_loop_scope = "function"
 addopts = "-q"
 
 [tool.ruff]
-line-length = 100
+# 120 is the width the project actually writes; `ruff format` is its only
+# enforcement point — E501 as a per-line error is dropped (see below).
+line-length = 120
 target-version = "py314"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "ASYNC", "S", "RUF"]
+# Families kept and dropped, one line each — re-add deliberately, not by accident.
+# Kept: E4/E7/E9 (pycodestyle without the layout rules the formatter owns), F
+#   (undefined names, unused imports, f-string bugs), I (import order makes the
+#   forbidden cyclic imports visible), UP (keeps 3.14 idioms current), B
+#   (bugbear defect classes: mutable defaults, control-flow accidents), ASYNC
+#   (blocking calls and cancelled-task misuse on async I/O paths), S (bandit
+#   security findings in application code), RUF (ruff's own findings, incl.
+#   unused-noqa hygiene).
+# Dropped: E1/E2/E3/E5/E6 and W (whitespace/layout — ruff format is the single
+#   formatter, owning these rules twice only churns diffs);
+#   E501 (the width is the formatter's job; a per-line error would flag long
+#   ESI paths and strings that cannot be wrapped);
+#   D (docstring style — the project has its own convention, not pydocstyle);
+#   PL (pylint opinions overlap type checking and flag deliberate test values);
+#   SIM, C4 (style rewrites with no defect signal);
+#   DTZ, T10, PTH, EM, RET, ARG (niche: timezones and debug come from the
+#   runtime, subprocess is banned by design rules, the rest churn without
+#   catching bugs).
+select = ["E4", "E7", "E9", "F", "I", "UP", "B", "ASYNC", "S", "RUF"]
 ignore = ["S101"]
 
 [tool.ruff.lint.per-file-ignores]
