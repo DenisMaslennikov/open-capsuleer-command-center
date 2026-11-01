@@ -17,6 +17,21 @@ you will not commit CCP game data (static data exports, ESI payload snapshots, i
 4. `make lint` and `make test` must be green before review.
 5. Merges into `feat/*` happen after review; `feat/*` into `main` is a human decision.
 
+## Local git hooks
+
+The hooks live in `.githooks/` and are versioned with the code, so enable them once per clone:
+
+```
+git config core.hooksPath .githooks
+```
+
+- `pre-commit` runs `ruff check --fix` and `ruff format` on the staged Python files and re-stages
+  the result; a lint error that `--fix` cannot resolve blocks the commit.
+- `pre-push` delegates to the machine-wide hook, which rejects a non-fast-forward push, a branch
+  deletion and a push to `main`.
+
+Skipping them is not a workflow: `--no-verify` is for a broken hook, not for a red result.
+
 ## Rules
 
 Read `AGENTS.md` and the rule file for the zone you are touching. A new convention is added as
