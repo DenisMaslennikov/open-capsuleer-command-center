@@ -64,6 +64,31 @@ python3 $CASCADE/gate.py expect-pass   --repo . --cmd "make test-backend"
 
 attempts per subtask: 4 · arbiter calls: 2 · phase: 45 min · budget: `~/.config/cascade/roles.yaml`
 
+## Board
+
+The board is a projection of GitHub, not a place where someone drags cards. Every move is derived
+from a pull request by `tools/board/sync.py`, run by `.github/workflows/board.yml` on pull-request
+events. No agent touches the board, and no one moves a card by hand.
+
+- A pull request names **exactly one card at the start of its title**: `[#18] s0-t4: implant
+  bonuses on top of base attributes`. GitHub appends `(#8)` to a squash title — that is the pull
+  request number, never a card; the bracketed prefix is the only accepted form. The
+  `PR title names a card` job fails any title without it.
+- Derived state, recomputed from scratch on every event:
+
+  | on GitHub | on the board |
+  |---|---|
+  | PR open | card in `Review` |
+  | PR merged | card in `Done`, `done = true` |
+  | PR closed without a merge | card back in `Plan` |
+  | card flagged done but standing elsewhere | `Done` |
+  | card in `Backlog`, all its `blocked` cards done | `Plan`, while fewer than `max_plan` cards stand there — highest `priority` first, then lowest id |
+
+- Two open PRs for one card is a finding, not a rule: the newest wins and the sync reports it. A PR
+  that names a card that does not exist is reported the same way.
+- The run is idempotent and silent: it re-reads the board after writing and fails if anything is
+  still pending; with nothing to do it prints nothing and sends no notification.
+
 ## New rule
 
 Seen twice → ADR (proposed) + edit the rules file + PR `chore(rules): …`.
