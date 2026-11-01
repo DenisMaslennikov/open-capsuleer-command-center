@@ -1,0 +1,32 @@
+rules:
+  - id: no-local-imports
+    languages: [python]
+    message: >-
+      Local (function-level) imports are forbidden: move the import to the module top. If a circular
+      import stands in the way, raise it for a human decision with options (shared module, inverted
+      dependency, split module) instead of hiding the cycle inside a function.
+    severity: ERROR
+    patterns:
+      - pattern-inside: |
+          def $F(...):
+              ...
+      - pattern-either:
+          - pattern: import $M
+          - pattern: from $M import $X
+    paths:
+      include:
+        - "**/backend/src/**"
+        - "**/backend/tests/**"
+
+  - id: no-bare-noqa
+    languages: [python]
+    message: >-
+      A bare `noqa` hides the defect the rule exists to catch. Give the code with a reason
+      (`# noqa: E501 — <why>`), or fix it. A reviewer treats an unexplained suppression as a finding.
+    severity: WARNING
+    patterns:
+      - pattern-regex: '#\s*noqa\s*$'
+    paths:
+      include:
+        - "**/backend/src/**"
+        - "**/backend/tests/**"
