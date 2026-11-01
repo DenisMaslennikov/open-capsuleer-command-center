@@ -60,6 +60,29 @@ python3 $CASCADE/gate.py expect-pass   --repo . --cmd "make test-backend"
 - `review:human` — the same plus a human approval and a filled-in PR description.
 - Disagreement between pr-agent and the implementer → arbiter (writes no code) → unresolved → human.
 
+## Tech debt
+
+Debt is not accumulated. A gap or a defect found while doing a task is **fixed in that task** if it can
+be fixed there — same card, same pull request, same review. Finding a problem and writing it down for
+"later" is the expensive option, not the safe one: the next reader pays again, and the branch that
+would have carried the fix is already merged.
+
+Ask the human, before finishing the task, when the fix cannot live in it:
+
+- it changes a contract, a schema or a rule another task depends on;
+- it needs a decision the task does not own (a library, an architecture, a vendor boundary);
+- it is larger than the task's budget of attempts or time.
+
+The ask states the problem, the options with a recommendation first, and what happens if it is left
+alone. Do not invent a card to avoid asking, and do not silently defer: a card is the record of a
+decision the human made, not a licence to leave work undone.
+
+When debt is deliberately deferred by that decision, it must be visible, not silent:
+
+- the gate prints it (a `WARNING` rule, an ignore with the reason in the same line), and
+- the card that removes it is named where the suppression lives (`Card #NNN`), so deleting the
+  suppression is a measurable task rather than a memory.
+
 ## Limits
 
 attempts per subtask: 4 · arbiter calls: 2 · phase: 45 min · budget: `~/.config/cascade/roles.yaml`

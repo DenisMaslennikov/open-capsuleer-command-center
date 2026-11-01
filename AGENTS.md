@@ -55,6 +55,10 @@ An environment-specific default in code — a gateway URL, a proxy, a hostname, 
 forbidden: read it from settings or the environment, and fail with an instruction when it is absent.
 `.semgrep.yml` enforces this (`no-environment-defaults`).
 
+Tech debt is not accumulated: a problem found while doing a task is fixed in that task, in the same
+pull request. If it cannot be fixed there, ask the human before finishing — with the options and a
+recommendation — instead of opening a card for later. See `.agents/rules/workflow.md`, "Tech debt".
+
 A new rules group = a new file in `.agents/rules/` + a row in this table (through a PR).
 
 ## Language
