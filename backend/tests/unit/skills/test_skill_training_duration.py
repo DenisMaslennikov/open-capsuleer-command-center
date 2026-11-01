@@ -94,6 +94,32 @@ def test_level_above_the_ladder_propagates_the_level_error() -> None:
     assert excinfo.type is InvalidSkillLevelError
 
 
+@pytest.mark.parametrize("target_level", [0, -1])
+def test_level_below_the_ladder_propagates_the_level_error(target_level: int) -> None:
+    with pytest.raises(InvalidSkillLevelError) as excinfo:
+        skill_training_duration(
+            rank=1,
+            target_level=target_level,
+            accumulated_sp=0,
+            sp_per_minute=25.0,
+        )
+
+    assert excinfo.type is InvalidSkillLevelError
+
+
+@pytest.mark.parametrize("sp_per_minute", [float("nan"), float("inf"), float("-inf")])
+def test_non_finite_training_speed_is_rejected(sp_per_minute: float) -> None:
+    with pytest.raises(InvalidSkillSpeedError) as excinfo:
+        skill_training_duration(
+            rank=1,
+            target_level=1,
+            accumulated_sp=0,
+            sp_per_minute=sp_per_minute,
+        )
+
+    assert excinfo.type is InvalidSkillSpeedError
+
+
 def test_rank_below_the_ladder_propagates_the_rank_error() -> None:
     with pytest.raises(InvalidSkillRankError) as excinfo:
         skill_training_duration(
