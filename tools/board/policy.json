@@ -1,0 +1,10 @@
+{
+ "project_id": 6,
+ "view_id": 26,
+ "backlog_column": "Backlog",
+ "plan_column": "Plan",
+ "review_column": "Review",
+ "done_column": "Done",
+ "max_plan": 3,
+ "max_prs": 100
+}
