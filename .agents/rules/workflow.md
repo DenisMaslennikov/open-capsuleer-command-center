@@ -92,6 +92,34 @@ loop. `run_role.py --budget` is an operator choice, off unless given.
 What remains is loop protection, not policy: attempts per subtask (4) and arbiter calls (2) stop a run
 that is not progressing. Changing them is a card like anything else.
 
+## Board
+
+The board is a projection of GitHub, not a place where someone drags cards. Every move is derived
+from a pull request by `tools/board/sync.py`, run by `.github/workflows/board.yml` on pull-request
+events. No agent touches the board, and no one moves a card by hand.
+
+- A pull request names **exactly one card at the start of its title**: `[#18] s0-t4: implant
+  bonuses on top of base attributes`. GitHub appends `(#8)` to a squash title — that is the pull
+  request number, never a card; the bracketed prefix is the only accepted form. The
+  `PR title names a card` job fails any title without it.
+- Derived state, recomputed from scratch on every event:
+
+  | on GitHub | on the board |
+  |---|---|
+  | PR open | card in `Review` |
+  | PR merged | card in `Done`, `done = true` |
+  | PR closed without a merge | card back in `Plan` |
+  | card flagged done but standing elsewhere | `Done` |
+  | card in `Backlog`, all its `blocked` cards done | `Plan` — every unblocked card, highest `priority` first, then lowest id |
+  | card carrying the `epic` label | left alone — a stage or a brief is a container, not work |
+
+- The Plan queue is not capped (`max_plan: null` in `tools/board/policy.json`): everything that
+  can be worked on stands in Plan. A number there would hold the surplus in `Backlog`.
+- Two open PRs for one card is a finding, not a rule: the newest wins and the sync reports it. A PR
+  that names a card that does not exist is reported the same way.
+- The run is idempotent and silent: it re-reads the board after writing and fails if anything is
+  still pending; with nothing to do it prints nothing and sends no notification.
+
 ## New rule
 
 Seen twice → ADR (proposed) + edit the rules file + PR `chore(rules): …`.
