@@ -34,6 +34,16 @@ fi
 
 # Run from the repository root with the staged paths as they are: ruff walks up from each file and
 # finds backend/pyproject.toml itself, while `uv run --project backend` needs the root as its cwd.
+# A formatter rewrites the whole file on disk, and re-adding that file would commit unstaged edits
+# the author did not intend to include. Refuse instead of silently taking them.
+unstaged=$(git diff --name-only -- $staged)
+if [ -n "$unstaged" ]; then
+  echo "pre-commit: these files have unstaged changes, and the formatter would commit them:"
+  printf '%s\n' "$unstaged" | sed 's/^/  /'
+  echo "pre-commit: stage the whole file (git add <path>) or stash the rest, then commit again."
+  exit 1
+fi
+
 echo "pre-commit: ruff check --fix / ruff format"
 # shellcheck disable=SC2086
 $RUFF check --fix $staged || {
