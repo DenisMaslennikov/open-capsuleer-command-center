@@ -82,8 +82,11 @@ events. No agent touches the board, and no one moves a card by hand.
   | PR merged | card in `Done`, `done = true` |
   | PR closed without a merge | card back in `Plan` |
   | card flagged done but standing elsewhere | `Done` |
-  | card in `Backlog`, all its `blocked` cards done | `Plan`, while fewer than `max_plan` cards stand there — highest `priority` first, then lowest id |
+  | card in `Backlog`, all its `blocked` cards done | `Plan` — every unblocked card, highest `priority` first, then lowest id |
+  | card carrying the `epic` label | left alone — a stage or a brief is a container, not work |
 
+- The Plan queue is not capped (`max_plan: null` in `tools/board/policy.json`): everything that
+  can be worked on stands in Plan. A number there would hold the surplus in `Backlog`.
 - Two open PRs for one card is a finding, not a rule: the newest wins and the sync reports it. A PR
   that names a card that does not exist is reported the same way.
 - The run is idempotent and silent: it re-reads the board after writing and fails if anything is
