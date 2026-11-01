@@ -35,7 +35,7 @@ meaning anything.
 - Two contours at the repository root: `backend/` and `frontend/`, each with its own
   toolchain, Dockerfile and test runner. Neither is published as a package.
 - `compose.yaml` runs three services: PostgreSQL 16, the backend with a reload server, and the
-  frontend dev server bound to `0.0.0.0` and served at `http://ai-sandbox.service:5173/`.
+  frontend dev server bound to `0.0.0.0` and served at `http://localhost:5173/`.
 - The dev server proxies `/api` to the backend service, so the browser sees one origin and
   cookies behave the same in every contour.
 - `compose.prod.yaml` later reuses the same images: the backend as a multi-worker runtime
@@ -67,7 +67,7 @@ loop — the thing that actually costs time here — gets worse.
 - A monorepo means CI runs both suites even when only one contour changed; path filters can
   fix that later.
 - The public development address is plain HTTP. CCP's OAuth redirect URI must match exactly,
-  so it is registered as `http://ai-sandbox.service:5173/api/v1/auth/eve/callback`; if the
+  so it is registered as `http://localhost:5173/api/v1/auth/eve/callback`; if the
   portal rejects a non-HTTPS host, a TLS terminator is added for that path only.
 
 ## Consequences
