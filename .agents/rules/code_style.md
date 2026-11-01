@@ -42,6 +42,18 @@ When to read: before editing any file under `backend/**` or `frontend/src/**`.
   next reader pays for it. This list of forbidden workarounds grows — a pattern the owner forbids
   is added here in the same pull request that introduces the alternative.
 
+## Environment
+
+- **No environment-specific defaults in code.** An address, a proxy, a hostname or an absolute home
+  path written as a fallback works on exactly one machine and hides the fact that the machine was
+  never configured.
+- Resolve in this order: the configuration the application already reads (settings, project config),
+  then an environment variable, then fail with an instruction naming what to set.
+- A missing proxy means *no proxy*, never a guessed one; a missing database URL is a startup error,
+  not a silent localhost.
+- The pipeline scripts follow the same rule through `bin/rig_conf.py` in the rig repository; the
+  `.semgrep.yml` rule `no-environment-defaults` enforces it in both repositories.
+
 ## Prohibitions
 
 - No local imports (see above).
