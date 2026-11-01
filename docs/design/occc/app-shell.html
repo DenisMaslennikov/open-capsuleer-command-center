@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OCCC · Application shell (s6-t1)</title>
+<!-- Light theme only, per owner (s5-t1). Custom properties mirror proposed token names; new ones are listed in the handoff. -->
+<style>
+:root{
+  --color-bg-layout:#f4f8fd; --color-bg-rail:#eef4fc; --color-bg-container:#ffffff;
+  --color-border:#e2ecf8; --color-primary:#2f6fed; --color-primary-hover:#245cd0;
+  --color-text:#1f2328; --color-text-secondary:#6b7280;
+  --color-skill-learned:#2f9e44; --color-skill-queued:#2f6fed;
+  --color-skill-next:#d98324; --color-skill-unreachable:#8a94a6;
+  --color-primary-bg:color-mix(in srgb,var(--color-primary) 10%,transparent);
+  --color-primary-bg-hover:color-mix(in srgb,var(--color-primary) 6%,transparent);
+  --shadow-sm:0 1px 2px rgba(31,35,40,.06);
+  --shadow-panel:0 8px 24px rgba(31,35,40,.14),0 2px 6px rgba(31,35,40,.08);
+  --radius-sm:4px; --radius-md:8px; --radius-lg:12px;
+  --space-xxs:4px; --space-xs:8px; --space-sm:12px; --space-md:16px; --space-lg:24px; --space-xl:32px;
+  --font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-mono:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
+  --size-topbar:56px; --size-rail-expanded:232px; --size-rail-collapsed:64px; --size-icon:18px;
+  --motion-fast:120ms; --motion-base:180ms;
+}
+*{box-sizing:border-box}
+body{margin:0;padding:var(--space-lg);background:var(--color-bg-layout);color:var(--color-text);
+  font:400 14px/1.45 var(--font-family)}
+.spec-title{font-size:20px;font-weight:600;margin:0 0 var(--space-xs)}
+.caption{margin:var(--space-lg) 0 var(--space-xs);font-size:12px;font-weight:500;color:var(--color-text-secondary)}
+.ru{color:var(--color-text-secondary)}
+.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+:focus-visible,.is-focus-demo{outline:2px solid var(--color-primary);outline-offset:2px}
+
+.shell{display:grid;grid-template-rows:var(--size-topbar) 1fr;grid-template-columns:var(--size-rail-expanded) 1fr;
+  height:440px;border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden;
+  background:var(--color-bg-layout);box-shadow:var(--shadow-sm)}
+.shell--collapsed{grid-template-columns:var(--size-rail-collapsed) 1fr}
+
+.topbar{grid-column:1/-1;display:flex;align-items:center;gap:var(--space-md);padding-right:var(--space-md);
+  background:var(--color-bg-container);border-bottom:1px solid var(--color-border)}
+.brand{display:flex;align-items:center;gap:var(--space-xs);width:var(--size-rail-expanded);padding:0 var(--space-sm);
+  height:100%;background:var(--color-bg-rail);border-right:1px solid var(--color-border)}
+.shell--collapsed .brand{width:var(--size-rail-collapsed);justify-content:center;padding:0}
+.wordmark{font-weight:600;font-size:16px;letter-spacing:.08em;color:var(--color-primary)}
+.burger{display:inline-grid;place-items:center;width:36px;height:36px;padding:0;border:0;border-radius:var(--radius-md);
+  background:transparent;color:var(--color-text);cursor:pointer;transition:background var(--motion-fast)}
+.burger:hover{background:var(--color-primary-bg-hover);color:var(--color-primary-hover)}
+.page-title{margin:0;font-size:16px;font-weight:600}
+.topbar-end{margin-left:auto;display:flex;align-items:center;gap:var(--space-sm)}
+
+.sync{display:inline-flex;align-items:center;gap:var(--space-xs);height:28px;padding:0 var(--space-sm);
+  border:1px solid var(--color-border);border-radius:var(--radius-lg);background:var(--color-bg-container);font-size:13px}
+
+.lang-switch{display:inline-flex;align-items:center;gap:2px;height:28px;padding:2px;
+  border:1px solid var(--color-border);border-radius:var(--radius-lg);background:var(--color-bg-container)}
+.lang-opt{min-width:30px;height:22px;padding:0 var(--space-xs);border:0;border-radius:6px;cursor:pointer;
+  font:500 12px/1 var(--font-family);color:var(--color-text-secondary);background:transparent}
+.lang-opt.is-active{background:var(--color-primary-tint);color:var(--color-primary)}
+.lang-opt:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--color-skill-learned)}
+
+/* Character switcher — single-select. The trigger names the active character,
+   the panel switches the whole screen to the picked row. */
+.cs{position:relative}
+.cs-btn{display:inline-flex;align-items:center;gap:var(--space-sm);height:36px;padding:0 var(--space-sm) 0 4px;
+  border:1px solid var(--color-border);border-radius:999px;background:var(--color-bg-container);cursor:pointer;
+  font:500 13px/1.2 var(--font-family);color:var(--color-text);transition:border-color var(--motion-fast)}
+.cs-btn:hover{border-color:var(--color-primary)}
+.cs-btn[aria-expanded="true"]{border-color:var(--color-primary);box-shadow:var(--shadow-sm)}
+.cs-portrait{position:relative;width:28px;height:28px;border-radius:50%;flex:none;
+  background:var(--color-bg-container);box-shadow:0 0 0 2px var(--color-bg-container)}
+.cs-portrait svg{display:block;width:100%;height:100%}
+.cs-label{display:inline-flex;flex-direction:column;line-height:1.25;text-align:left}
+.cs-active-name{white-space:nowrap}
+.cs-active-corp{color:var(--color-text-secondary);font-weight:400;font-size:11px;letter-spacing:.04em}
+.cs-caret{width:14px;height:14px;stroke:var(--color-text-secondary);margin-left:2px}
+.cs-panel{position:absolute;top:calc(100% + var(--space-xxs));right:0;z-index:5;width:320px;
+  background:var(--color-bg-container);border:1px solid var(--color-border);border-radius:var(--radius-md);
+  box-shadow:var(--shadow-panel)}
+.cs-head{display:flex;align-items:baseline;gap:var(--space-xs);padding:var(--space-sm) var(--space-md);
+  border-bottom:1px solid var(--color-border);font-size:13px}
+.cs-head-title{font-weight:600}
+.cs-list{list-style:none;margin:0;padding:var(--space-xxs) var(--space-xxs)}
+.cs-row{position:relative;display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-xs) var(--space-sm);
+  border-radius:var(--radius-md);min-height:48px;border:0;background:transparent;width:100%;cursor:pointer;
+  font:inherit;text-align:left;transition:background var(--motion-fast)}
+.cs-row:hover{background:var(--color-primary-bg-hover)}
+.cs-row .cs-portrait{width:32px;height:32px}
+.cs-name{margin-right:auto;min-width:0}
+.cs-row-name{font-weight:500;color:var(--color-text);line-height:1.3}
+.cs-row-corp{font-size:12px;color:var(--color-text-secondary)}
+.cs-row-state{position:relative;display:inline-block;flex:none}
+.cs-row-state::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--color-skill-learned)}
+.cs-row[data-character-state="stale"] .cs-row-state::before{background:var(--color-skill-next)}
+.cs-row[data-character-state="no-access"] .cs-row-state::before{background:var(--color-skill-unreachable)}
+.cs-row[data-character-state="no-access"] .cs-row-name{color:var(--color-text-secondary)}
+.cs-active{display:inline-block;flex:none;margin-left:var(--space-xxs);padding:1px var(--space-xxs);
+  border-radius:var(--radius-sm);background:var(--color-primary-bg);color:var(--color-primary);
+  font-size:10px;font-weight:600;letter-spacing:.05em;line-height:1.5}
+.cs-row[data-character-active="true"]{background:var(--color-primary-bg)}
+.cs-row[data-character-active="true"]::after{content:"";position:absolute;left:0;top:6px;bottom:6px;width:2px;
+  border-radius:var(--radius-sm);background:var(--color-primary)}
+.cs-row[data-character-active="true"]:hover{background:var(--color-primary-bg)}
+.cs-row[aria-disabled="true"]{cursor:default}
+.cs-row[aria-disabled="true"]:hover{background:transparent}
+.cs-reason{margin-right:auto;padding-top:2px}
+.cs-reason code{font-family:var(--font-mono);font-size:11px;color:var(--color-skill-unreachable);word-break:break-all}
+.cs-grant{border:0;background:transparent;padding:0;font:500 13px/1.4 var(--font-family);color:var(--color-primary);
+  cursor:pointer;border-radius:var(--radius-sm)}
+.cs-grant:hover{color:var(--color-primary-hover);text-decoration:underline}
+.cs-foot{display:flex;justify-content:flex-start;padding:var(--space-xs) var(--space-md);border-top:1px solid var(--color-border)}
+.cs-add{display:inline-flex;align-items:center;gap:var(--space-xxs);border:0;background:transparent;padding:0;
+  font:500 13px/1.4 var(--font-family);color:var(--color-primary);cursor:pointer;border-radius:var(--radius-sm)}
+.cs-add:hover{color:var(--color-primary-hover);text-decoration:underline}
+.cs-add svg{width:12px;height:12px}
+.cs-row[data-character-active="false"] .cs-active{display:none}
+
+/* Portraits — inline SVG, two tones of one hue, deterministic per character */
+.p-avatar{border-radius:50%;overflow:hidden}
+.p-bg{fill:var(--p-bg)}
+.p-fg{fill:var(--p-fg)}
+.p-hair{fill:var(--p-fg);opacity:.85}
+.p-skin{fill:color-mix(in srgb,var(--p-fg) 22%,#fff)}
+
+/* The one-line caption that ties the switcher to the screen below it. */
+.cs-note{margin:var(--space-xs) 0 0;padding:0 var(--space-xxs);font-size:11px;color:var(--color-text-secondary)}
+
+.rail{background:var(--color-bg-rail);border-right:1px solid var(--color-border);padding:var(--space-sm) var(--space-xs)}
+.rail ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nav-item{position:relative;display:flex;align-items:center;gap:var(--space-sm);height:36px;padding:0 var(--space-sm);
+  border-radius:var(--radius-md);color:var(--color-text);text-decoration:none;font-size:13px;white-space:nowrap;
+  transition:background var(--motion-fast),color var(--motion-fast)}
+.nav-item svg{flex:none;width:var(--size-icon);height:var(--size-icon)}
+.nav-item:hover{background:var(--color-primary-bg-hover);color:var(--color-primary-hover)}
+.nav-item[aria-current="page"]{background:var(--color-primary-bg);color:var(--color-primary);font-weight:500}
+.nav-item[aria-current="page"]::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:2px;
+  border-radius:var(--radius-sm);background:var(--color-primary)}
+.nav-item .ru{font-weight:400}
+[data-nav="collapsed"]{padding:var(--space-sm) var(--space-xs)}
+[data-nav="collapsed"] .nav-item{justify-content:center;padding:0}
+[data-nav="collapsed"] .nav-item::after{content:attr(data-tip);position:absolute;left:calc(100% + var(--space-xs));top:50%;
+  transform:translateY(-50%);padding:var(--space-xxs) var(--space-xs);border-radius:var(--radius-sm);
+  background:var(--color-text);color:var(--color-bg-container);font-size:12px;font-weight:400;white-space:nowrap;
+  opacity:0;pointer-events:none;z-index:2;transition:opacity var(--motion-fast)}
+[data-nav="collapsed"] .nav-item:hover::after,[data-nav="collapsed"] .nav-item:focus-visible::after,
+[data-nav="collapsed"] .nav-item.is-tip-demo::after{opacity:1}
+
+.content{padding:var(--space-lg);overflow:hidden}
+.card{background:var(--color-bg-container);border:1px solid var(--color-border);border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-sm);padding:var(--space-lg);color:var(--color-text-secondary);min-height:160px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-burger" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 6h16M4 12h9M4 18h16M16 9l3 3-3 3"/></symbol>
+    <symbol id="i-dashboard" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol>
+    <symbol id="i-skills" viewBox="0 0 24 24"><path d="M3 5h6a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H3zM21 5h-6a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h7z"/></symbol>
+    <symbol id="i-assets" viewBox="0 0 24 24"><path d="M3 7l9-4 9 4-9 4zM3 7v10l9 4 9-4V7M12 11v10"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></symbol>
+    <symbol id="i-industry" viewBox="0 0 24 24"><path d="M3 21V10l6 4v-4l6 4V5h6v16zM3 21h18"/></symbol>
+    <symbol id="i-market" viewBox="0 0 24 24"><path d="M3 3v18h18M7 15l4-4 3 3 6-7"/></symbol>
+    <symbol id="i-killmail" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 9.4-3.9M14.5 4.9a3.2 3.2 0 0 1 0 7.2M16.5 15.4a5.5 5.5 0 0 1 4 3.6"/></symbol>
+  </defs>
+</svg>
+<style>svg use{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.burger svg,.nav-item svg{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.cs-caret{fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:2}
+.cs-add svg{stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;fill:none}</style>
+
+<h1 class="spec-title">Application shell</h1>
+
+<p class="caption">1 · data-nav="expanded" — 232 px rail, single-select switcher open, the aggregate view is the active row</p>
+<div class="shell" data-component="AppShell">
+  <header class="topbar" data-component="TopBar">
+    <div class="brand">
+      <button class="burger is-focus-demo" type="button" data-component="BurgerButton" aria-expanded="true"
+        aria-controls="nav-expanded" aria-label="Collapse navigation"><svg width="20" height="20"><use href="#i-burger"/></svg></button>
+      <span class="wordmark">OCCC</span>
+    </div>
+    <h2 class="page-title">Skill plan</h2>
+    <div class="topbar-end">
+      <div class="cs" data-component="CharacterSwitcher" data-panel-anchor="trigger">
+        <button class="cs-btn" type="button" aria-expanded="true" aria-haspopup="listbox" aria-controls="cs-panel-1"
+          aria-label="Active character: Kadir Aylin">
+          <span class="cs-portrait" aria-hidden="true"><svg viewBox="0 0 28 28" style="--p-bg:#dbe4f0"><circle class="p-bg" cx="14" cy="14" r="14"/><use href="#i-users" x="5" y="5" width="18" height="18"/></svg></span>
+          <span class="cs-label">
+            <span class="cs-active-name">Kadir Aylin</span>
+            <span class="cs-active-corp">Vane Dynamics</span>
+          </span>
+          <svg class="cs-caret" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 5.5 7 9.5l4-4"/></svg>
+        </button>
+        <div class="cs-panel" id="cs-panel-1" role="group" aria-label="Active character">
+          <!-- Single select: one radio checked, no checkboxes. The whole screen below shows that character. -->
+          <div class="cs-head">
+            <span class="cs-head-title">Active character</span>
+          </div>
+          <div class="cs-list" role="radiogroup" aria-label="Characters">
+            <button class="cs-row" type="button" role="radio" aria-checked="true" data-component="CharacterRow"
+              data-character-active="true" data-character-state="synced">
+              <span class="cs-portrait" aria-hidden="true"><svg data-component="CharacterPortrait" data-portrait="Kadir Aylin" viewBox="0 0 32 32" style="--p-bg:#dbe4f0;--p-fg:#49658d"><circle class="p-bg" cx="16" cy="16" r="16"/><path class="p-fg" d="M4 32a12 12 0 0 1 24 0z"/><circle class="p-skin" cx="16" cy="12" r="5"/><path class="p-hair" d="M11 12a5 5 0 0 1 10 0v1H20a6.5 6.5 0 0 0-9 0z"/></svg></span>
+              <span class="cs-name">
+                <span class="cs-row-name">Kadir Aylin</span>
+                <span class="cs-row-corp">KAD</span>
+              </span>
+              <span class="cs-row-state" title="synced" aria-hidden="true"></span>
+              <span class="cs-active">active</span>
+            </button>
+            <button class="cs-row" type="button" role="radio" aria-checked="false" data-component="CharacterRow"
+              data-character-active="false" data-character-state="synced">
+              <span class="cs-portrait" aria-hidden="true"><svg data-component="CharacterPortrait" data-portrait="Saya Okamoto" viewBox="0 0 32 32" style="--p-bg:#dbf0eb;--p-fg:#498d7c"><circle class="p-bg" cx="16" cy="16" r="16"/><path class="p-fg" d="M4 32a12 12 0 0 1 24 0z"/><circle class="p-skin" cx="16" cy="12" r="5"/><path class="p-hair" d="M11 12a5 5 0 0 1 10 0v3H20a6.5 6.5 0 0 0-9 0z"/></svg></span>
+              <span class="cs-name">
+                <span class="cs-row-name">Saya Okamoto</span>
+                <span class="cs-row-corp">OKM</span>
+              </span>
+              <span class="cs-row-state" title="synced" aria-hidden="true"></span>
+              <span class="cs-active">active</span>
+            </button>
+            <button class="cs-row" type="button" role="radio" aria-checked="false" data-component="CharacterRow"
+              data-character-active="false" data-character-state="stale">
+              <span class="cs-portrait" aria-hidden="true"><svg data-component="CharacterPortrait" data-portrait="Marcus Vane" viewBox="0 0 32 32" style="--p-bg:#f0e3db;--p-fg:#8d6449"><circle class="p-bg" cx="16" cy="16" r="16"/><path class="p-fg" d="M4 32a12 12 0 0 1 24 0z"/><circle class="p-skin" cx="16" cy="12" r="5"/><path class="p-hair" d="M11 12a5 5 0 0 1 10 0v-1H20a6.5 6.5 0 0 0-9 0z"/></svg></span>
+              <span class="cs-name">
+                <span class="cs-row-name">Marcus Vane</span>
+                <span class="cs-row-corp">VNA</span>
+              </span>
+              <span class="cs-row-state" title="stale" aria-hidden="true"></span>
+              <span class="cs-active">active</span>
+            </button>
+            <button class="cs-row" type="button" role="radio" aria-checked="false" data-component="CharacterRow"
+              data-character-active="false" data-character-state="synced">
+              <span class="cs-portrait" aria-hidden="true"><svg data-component="CharacterPortrait" data-portrait="Elin Drako" viewBox="0 0 32 32" style="--p-bg:#e3dbf0;--p-fg:#62498d"><circle class="p-bg" cx="16" cy="16" r="16"/><path class="p-fg" d="M4 32a12 12 0 0 1 24 0z"/><circle class="p-skin" cx="16" cy="12" r="5"/><path class="p-hair" d="M11 12a5 5 0 0 1 10 0v4H20a6.5 6.5 0 0 0-9 0z"/></svg></span>
+              <span class="cs-name">
+                <span class="cs-row-name">Elin Drako</span>
+                <span class="cs-row-corp">DRK</span>
+              </span>
+              <span class="cs-row-state" title="synced" aria-hidden="true"></span>
+              <span class="cs-active">active</span>
+            </button>
+            <!-- Not selectable until the scope is granted; the row itself is a div so the grant button stays valid HTML. -->
+            <div class="cs-row" role="radio" aria-checked="false" aria-disabled="true" tabindex="-1"
+              data-component="CharacterRow" data-character-active="false" data-character-state="no-access">
+              <span class="cs-portrait" aria-hidden="true"><svg data-component="CharacterPortrait" data-portrait="Rei Tanaka" viewBox="0 0 32 32" style="--p-bg:#f0dbe3;--p-fg:#8d4962"><circle class="p-bg" cx="16" cy="16" r="16"/><path class="p-fg" d="M4 32a12 12 0 0 1 24 0z"/><circle class="p-skin" cx="16" cy="12" r="5"/><path class="p-hair" d="M11 12a5 5 0 0 1 10 0v2H20a6.5 6.5 0 0 0-9 0z"/></svg></span>
+              <span class="cs-name">
+                <span class="cs-row-name">Rei Tanaka</span>
+                <span class="cs-row-corp">TNK</span>
+              </span>
+              <span class="cs-row-state" title="no access" aria-hidden="true"></span>
+              <span class="cs-reason">missing scope <code>esi-skills.read_skills.v1</code></span>
+              <button class="cs-grant" type="button">grant</button>
+            </div>
+          </div>
+          <div class="cs-foot">
+            <button class="cs-add" type="button"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.5v9M1.5 6h9"/></svg>Add character</button>
+          </div>
+        </div>
+        <!-- The whole screen below the top bar shows the active character: plan, queue, SP. -->
+        <p class="cs-note">the plan below belongs to the active character</p>
+      </div>
+      <span class="sync" data-component="SyncBadge" role="status">
+        <span class="sync-dot" aria-hidden="true"></span>
+        <span>synced <time class="num" datetime="PT4M">4</time> min ago</span></span>
+      <div class="lang-switch" data-component="LanguageSwitch" data-lang="en" role="group" aria-label="Interface language">
+        <button class="lang-opt is-active" type="button" data-lang-option="en" aria-pressed="true">EN</button>
+        <button class="lang-opt" type="button" data-lang-option="ru" aria-pressed="false">RU</button>
+      </div>
+      </span>
+    </div>
+  </header>
+  <nav class="rail" id="nav-expanded" data-component="SideNav" data-nav="expanded" aria-label="Modules">
+    <ul>
+      <li><a class="nav-item" data-component="NavItem" href="#dashboard"><svg><use href="#i-dashboard"/></svg><span>Dashboard</span></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#skills" aria-current="page"><svg><use href="#i-skills"/></svg><span>Skills</span></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#assets"><svg><use href="#i-assets"/></svg><span>Assets</span></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#mail"><svg><use href="#i-mail"/></svg><span>Mail</span></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#industry"><svg><use href="#i-industry"/></svg><span>Industry</span></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#market"><svg><use href="#i-market"/></svg><span>Market</span></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#killmail"><svg><use href="#i-killmail"/></svg><span>Killmail</span></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#settings"><svg><use href="#i-settings"/></svg><span>Settings</span></a></li>
+    </ul>
+  </nav>
+  <main class="content"><div class="card">Page content slot</div></main>
+</div>
+
+<p class="caption">2 · data-nav="collapsed" — 64 px rail, icons only, tooltip pinned on "Skills"; same panel after the click: Kadir Aylin is active</p>
+<div class="shell shell--collapsed" data-component="AppShell">
+  <header class="topbar" data-component="TopBar">
+    <div class="brand">
+      <button class="burger" type="button" data-component="BurgerButton" aria-expanded="false"
+        aria-controls="nav-collapsed" aria-label="Expand navigation"><svg width="20" height="20"><use href="#i-expand"/></svg></button>
+    </div>
+    <h2 class="page-title">Skill plan</h2>
+    <div class="topbar-end">
+      <div class="cs" data-component="CharacterSwitcher" data-panel-anchor="trigger">
+        <button class="cs-btn" type="button" aria-expanded="true" aria-haspopup="listbox" aria-controls="cs-panel-2"
+          aria-label="Active character: Kadir Aylin">
+          <span class="cs-portrait" aria-hidden="true"><svg data-component="CharacterPortrait" data-portrait="Kadir Aylin" viewBox="0 0 28 28" style="--p-bg:#dbe4f0;--p-fg:#49658d"><circle class="p-bg" cx="14" cy="14" r="14"/><path class="p-fg" d="M4 28a10 10 0 0 1 20 0z"/><circle class="p-skin" cx="14" cy="10.5" r="4.5"/></svg></span>
+          <span class="cs-label">
+            <span class="cs-active-name">Kadir Aylin</span>
+            <span class="cs-active-corp">KAD</span>
+          </span>
+          <svg class="cs-caret" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 5.5 7 9.5l4-4"/></svg>
+        </button>
+        <div class="cs-panel" id="cs-panel-2" role="group" aria-label="Active character">
+          <!-- Same list after the click: Kadir Aylin is now the one active row and the trigger mirrors it. -->
+          <div class="cs-head">
+            <span class="cs-head-title">Active character</span>
+          </div>
+          <div class="cs-list" role="radiogroup" aria-label="Characters">
+            <button class="cs-row" type="button" role="radio" aria-checked="false" data-component="CharacterRow"
+              data-character-active="false" data-character-state="synced">
+              <span class="cs-portrait" aria-hidden="true"><svg data-component="CharacterPortrait" data-portrait="Kadir Aylin" viewBox="0 0 32 32" style="--p-bg:#dbe4f0;--p-fg:#49658d"><circle class="p-bg" cx="16" cy="16" r="16"/><path class="p-fg" d="M4 32a12 12 0 0 1 24 0z"/><circle class="p-skin" cx="16" cy="12" r="5"/><path class="p-hair" d="M11 12a5 5 0 0 1 10 0v1H20a6.5 6.5 0 0 0-9 0z"/></svg></span>
+              <span class="cs-name">
+                <span class="cs-row-name">Kadir Aylin</span>
+                <span class="cs-row-corp">KAD</span>
+              </span>
+              <span class="cs-row-state" title="synced" aria-hidden="true"></span>
+              <span class="cs-active">active</span>
+            </button>
+            <button class="cs-row" type="button" role="radio" aria-checked="true" data-component="CharacterRow"
+              data-character-active="true" data-character-state="synced">
+              <span class="cs-portrait" aria-hidden="true"><svg data-component="CharacterPortrait" data-portrait="Saya Okamoto" viewBox="0 0 32 32" style="--p-bg:#dbf0eb;--p-fg:#498d7c"><circle class="p-bg" cx="16" cy="16" r="16"/><path class="p-fg" d="M4 32a12 12 0 0 1 24 0z"/><circle class="p-skin" cx="16" cy="12" r="5"/><path class="p-hair" d="M11 12a5 5 0 0 1 10 0v3H20a6.5 6.5 0 0 0-9 0z"/></svg></span>
+              <span class="cs-name">
+                <span class="cs-row-name">Saya Okamoto</span>
+                <span class="cs-row-corp">OKM</span>
+              </span>
+              <span class="cs-row-state" title="synced" aria-hidden="true"></span>
+              <span class="cs-active">active</span>
+            </button>
+            <button class="cs-row" type="button" role="radio" aria-checked="false" data-component="CharacterRow"
+              data-character-active="false" data-character-state="stale">
+              <span class="cs-portrait" aria-hidden="true"><svg data-component="CharacterPortrait" data-portrait="Marcus Vane" viewBox="0 0 32 32" style="--p-bg:#f0e3db;--p-fg:#8d6449"><circle class="p-bg" cx="16" cy="16" r="16"/><path class="p-fg" d="M4 32a12 12 0 0 1 24 0z"/><circle class="p-skin" cx="16" cy="12" r="5"/><path class="p-hair" d="M11 12a5 5 0 0 1 10 0v-1H20a6.5 6.5 0 0 0-9 0z"/></svg></span>
+              <span class="cs-name">
+                <span class="cs-row-name">Marcus Vane</span>
+                <span class="cs-row-corp">VNA</span>
+              </span>
+              <span class="cs-row-state" title="stale" aria-hidden="true"></span>
+              <span class="cs-active">active</span>
+            </button>
+            <button class="cs-row" type="button" role="radio" aria-checked="false" data-component="CharacterRow"
+              data-character-active="false" data-character-state="synced">
+              <span class="cs-portrait" aria-hidden="true"><svg data-component="CharacterPortrait" data-portrait="Elin Drako" viewBox="0 0 32 32" style="--p-bg:#e3dbf0;--p-fg:#62498d"><circle class="p-bg" cx="16" cy="16" r="16"/><path class="p-fg" d="M4 32a12 12 0 0 1 24 0z"/><circle class="p-skin" cx="16" cy="12" r="5"/><path class="p-hair" d="M11 12a5 5 0 0 1 10 0v4H20a6.5 6.5 0 0 0-9 0z"/></svg></span>
+              <span class="cs-name">
+                <span class="cs-row-name">Elin Drako</span>
+                <span class="cs-row-corp">DRK</span>
+              </span>
+              <span class="cs-row-state" title="synced" aria-hidden="true"></span>
+              <span class="cs-active">active</span>
+            </button>
+            <div class="cs-row" role="radio" aria-checked="false" aria-disabled="true" tabindex="-1"
+              data-component="CharacterRow" data-character-active="false" data-character-state="no-access">
+              <span class="cs-portrait" aria-hidden="true"><svg data-component="CharacterPortrait" data-portrait="Rei Tanaka" viewBox="0 0 32 32" style="--p-bg:#f0dbe3;--p-fg:#8d4962"><circle class="p-bg" cx="16" cy="16" r="16"/><path class="p-fg" d="M4 32a12 12 0 0 1 24 0z"/><circle class="p-skin" cx="16" cy="12" r="5"/><path class="p-hair" d="M11 12a5 5 0 0 1 10 0v2H20a6.5 6.5 0 0 0-9 0z"/></svg></span>
+              <span class="cs-name">
+                <span class="cs-row-name">Rei Tanaka</span>
+                <span class="cs-row-corp">TNK</span>
+              </span>
+              <span class="cs-row-state" title="no access" aria-hidden="true"></span>
+              <span class="cs-reason">missing scope <code>esi-skills.read_skills.v1</code></span>
+              <button class="cs-grant" type="button">grant</button>
+            </div>
+          </div>
+          <div class="cs-foot">
+            <button class="cs-add" type="button"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.5v9M1.5 6h9"/></svg>Add character</button>
+          </div>
+        </div>
+        <p class="cs-note">the plan below belongs to the active character</p>
+      </div>
+      <span class="sync" data-component="SyncBadge" role="status">
+        <span class="sync-dot" aria-hidden="true"></span>
+        <span>synced <time class="num" datetime="PT4M">4</time> min ago</span></span>
+      <div class="lang-switch" data-component="LanguageSwitch" data-lang="en" role="group" aria-label="Interface language">
+        <button class="lang-opt is-active" type="button" data-lang-option="en" aria-pressed="true">EN</button>
+        <button class="lang-opt" type="button" data-lang-option="ru" aria-pressed="false">RU</button>
+      </div>
+      </span>
+    </div>
+  </header>
+  <nav class="rail" id="nav-collapsed" data-component="SideNav" data-nav="collapsed" aria-label="Modules">
+    <ul>
+      <li><a class="nav-item" data-component="NavItem" href="#dashboard" title="Dashboard" data-tip="Dashboard" aria-label="Dashboard"><svg aria-hidden="true"><use href="#i-dashboard"/></svg></a></li>
+      <li><a class="nav-item is-tip-demo" data-component="NavItem" href="#skills" aria-current="page" title="Skills" data-tip="Skills" aria-label="Skills"><svg aria-hidden="true"><use href="#i-skills"/></svg></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#assets" title="Assets" data-tip="Assets" aria-label="Assets"><svg aria-hidden="true"><use href="#i-assets"/></svg></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#mail" title="Mail" data-tip="Mail" aria-label="Mail"><svg aria-hidden="true"><use href="#i-mail"/></svg></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#industry" title="Industry" data-tip="Industry" aria-label="Industry"><svg aria-hidden="true"><use href="#i-industry"/></svg></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#market" title="Market" data-tip="Market" aria-label="Market"><svg aria-hidden="true"><use href="#i-market"/></svg></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#killmail" title="Killmail" data-tip="Killmail" aria-label="Killmail"><svg aria-hidden="true"><use href="#i-killmail"/></svg></a></li>
+      <li><a class="nav-item" data-component="NavItem" href="#settings" title="Settings" data-tip="Settings" aria-label="Settings"><svg aria-hidden="true"><use href="#i-settings"/></svg></a></li>
+    </ul>
+  </nav>
+  <main class="content"><div class="card">Page content slot</div></main>
+</div>
+</body>
+</html>
