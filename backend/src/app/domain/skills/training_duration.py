@@ -7,6 +7,9 @@ speed from the attribute rule; both live in sibling modules of this package.
 
 from datetime import timedelta
 
+from app.domain.skills.errors import InvalidAccumulatedSkillSpError, InvalidSkillSpeedError
+from app.domain.skills.sp_table import accumulated_skill_sp
+
 __all__ = ["skill_training_duration"]
 
 
@@ -36,4 +39,11 @@ def skill_training_duration(
         InvalidSkillSpeedError: when ``sp_per_minute`` is not positive.
     """
 
-    raise NotImplementedError
+    if accumulated_sp < 0:
+        raise InvalidAccumulatedSkillSpError(f"accumulated_sp {accumulated_sp} below 0")
+    if sp_per_minute <= 0:
+        raise InvalidSkillSpeedError(f"sp_per_minute {sp_per_minute} not positive")
+
+    total_sp = accumulated_skill_sp(rank=rank, level=target_level)
+    remaining_sp = max(total_sp - accumulated_sp, 0)
+    return timedelta(minutes=remaining_sp / sp_per_minute)
