@@ -73,9 +73,7 @@ def load_contract(path: Path) -> dict[str, Any]:
 
 def contract_tables(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return {
-        table["name"]: table
-        for aggregate in contract.get("aggregates", [])
-        for table in aggregate.get("tables", [])
+        table["name"]: table for aggregate in contract.get("aggregates", []) for table in aggregate.get("tables", [])
     }
 
 
@@ -164,9 +162,7 @@ def check_completeness(contract: dict[str, Any], metadata: MetaData) -> list[str
     for table in metadata.sorted_tables:
         declared_table = declared.get(table.name)
         if declared_table is None:
-            errors.append(
-                f"table {table.name} exists in models but is not declared in the contract"
-            )
+            errors.append(f"table {table.name} exists in models but is not declared in the contract")
             continue
         declared_columns = {column["name"] for column in declared_table.get("columns", [])}
         model_columns = {column.name for column in table.columns}
@@ -174,18 +170,13 @@ def check_completeness(contract: dict[str, Any], metadata: MetaData) -> list[str
             if column.name not in declared_columns:
                 errors.append(f"column {table.name}.{column.name} is not declared in the contract")
         for column_name in declared_columns - model_columns:
-            errors.append(
-                f"column {table.name}.{column_name} is declared in the contract but "
-                "missing in the model"
-            )
+            errors.append(f"column {table.name}.{column_name} is declared in the contract but missing in the model")
     for name in declared:
         if name in metadata.tables:
             continue
         aggregate = contract_aggregate_of(contract)[name]
         if module_exists(aggregate):
-            errors.append(
-                f"table {name} is declared and its aggregate exists, but the model is missing"
-            )
+            errors.append(f"table {name} is declared and its aggregate exists, but the model is missing")
     return errors
 
 
@@ -203,8 +194,7 @@ def check_columns(contract: dict[str, Any], metadata: MetaData) -> list[str]:
                 continue
             if not type_matches(column, spec.get("type", "")):
                 errors.append(
-                    f"{table.name}.{column.name}: type {column.type!r} does not match "
-                    f"declared {spec.get('type')!r}"
+                    f"{table.name}.{column.name}: type {column.type!r} does not match declared {spec.get('type')!r}"
                 )
             if bool(column.nullable) is not bool(spec.get("nullable", True)):
                 errors.append(f"{table.name}.{column.name}: nullability differs from the contract")
@@ -224,17 +214,10 @@ def check_type_rules(metadata: MetaData, declared: dict[str, dict[str, Any]]) ->
             if is_float and any(word in name for word in MONEY_COLUMNS):
                 errors.append(f"{table.name}.{column.name}: floating point is forbidden for money")
             if rendered.startswith("jsonb") and (table.name, column.name) not in JSONB_ALLOWED:
-                errors.append(
-                    f"{table.name}.{column.name}: jsonb is only allowed for opaque "
-                    "external payloads"
-                )
-            if column.name.endswith("_encrypted") and not rendered.startswith(
-                ("largebinary", "bytea")
-            ):
+                errors.append(f"{table.name}.{column.name}: jsonb is only allowed for opaque external payloads")
+            if column.name.endswith("_encrypted") and not rendered.startswith(("largebinary", "bytea")):
                 errors.append(f"{table.name}.{column.name}: encrypted secrets must be bytea")
-            if column.name.endswith("_at") and not (
-                isinstance(column.type, DateTime) and bool(column.type.timezone)
-            ):
+            if column.name.endswith("_at") and not (isinstance(column.type, DateTime) and bool(column.type.timezone)):
                 errors.append(f"{table.name}.{column.name}: *_at must be timestamptz")
     return errors
 
@@ -286,29 +269,18 @@ def check_relations(contract: dict[str, Any], metadata: MetaData) -> list[str]:
             for foreign_key in column.foreign_keys:
                 target = foreign_key.column.table.name
                 if target not in metadata.tables:
-                    errors.append(
-                        f"{table.name}.{column.name}: foreign key to unknown table {target}"
-                    )
+                    errors.append(f"{table.name}.{column.name}: foreign key to unknown table {target}")
                     continue
-                if (
-                    lifetime.get(table.name) in ("user", "cache")
-                    and aggregate_of.get(target) == "sde"
-                ):
+                if lifetime.get(table.name) in ("user", "cache") and aggregate_of.get(target) == "sde":
                     errors.append(
                         f"{table.name}.{column.name}: a {lifetime.get(table.name)} table "
                         "must not reference SDE by foreign key"
                     )
                 declared = contract_tables(contract).get(column.table.name) or {}
-                composite = {
-                    name
-                    for fk in declared.get("foreign_keys") or []
-                    for name in fk.get("columns") or []
-                }
+                composite = {name for fk in declared.get("foreign_keys") or [] for name in fk.get("columns") or []}
                 if column.name in composite:
                     continue
-                spec = next(
-                    (c for c in declared.get("columns", []) if c["name"] == column.name), {}
-                )
+                spec = next((c for c in declared.get("columns", []) if c["name"] == column.name), {})
                 reference = spec.get("references") or {}
                 if reference:
                     if reference.get("table") != target:
@@ -326,8 +298,7 @@ def check_relations(contract: dict[str, Any], metadata: MetaData) -> list[str]:
                 actual = (foreign_key.ondelete or "no action").lower()
                 if expected_on_delete and actual != expected_on_delete.lower():
                     errors.append(
-                        f"{table.name}.{column.name}: ON DELETE {actual} does not match "
-                        f"declared {expected_on_delete}"
+                        f"{table.name}.{column.name}: ON DELETE {actual} does not match declared {expected_on_delete}"
                     )
     return errors
 
@@ -345,9 +316,7 @@ def check_ownership(contract: dict[str, Any], metadata: MetaData) -> list[str]:
         for model in Base.registry.mappers:
             if model.local_table is not None and model.local_table.name == table.name:
                 if model.class_.__module__ != module:
-                    errors.append(
-                        f"{table.name}: model lives in {model.class_.__module__}, expected {module}"
-                    )
+                    errors.append(f"{table.name}: model lives in {model.class_.__module__}, expected {module}")
     errors += check_account_reachability(metadata, lifetime)
     return errors
 
@@ -376,9 +345,7 @@ def check_account_reachability(metadata: MetaData, lifetime: dict[str, str]) -> 
         if table.name == "accounts":
             continue
         if not reaches_account(table.name, set()):
-            errors.append(
-                f"{table.name}: a user table must reach accounts through cascading foreign keys"
-            )
+            errors.append(f"{table.name}: a user table must reach accounts through cascading foreign keys")
     return errors
 
 
@@ -400,9 +367,7 @@ def run(contract_path: Path, metadata: MetaData | None = None) -> list[str]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Compare models with the schema contract.")
-    parser.add_argument(
-        "--contract", default="../docs/schema/schema.json", help="path to the schema contract"
-    )
+    parser.add_argument("--contract", default="../docs/schema/schema.json", help="path to the schema contract")
     args = parser.parse_args(argv)
     errors = run(Path(args.contract))
     for error in errors:

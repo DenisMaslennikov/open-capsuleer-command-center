@@ -177,9 +177,7 @@ def test_foreign_key_to_wrong_table_fails(contract_path: Path) -> None:
         "market_orders",
         metadata,
         Column("id", BigInteger, primary_key=True),
-        Column(
-            "account_id", BigInteger, ForeignKey("accounts.id", ondelete="cascade"), nullable=False
-        ),
+        Column("account_id", BigInteger, ForeignKey("accounts.id", ondelete="cascade"), nullable=False),
         Column("price", Numeric(20, 2), nullable=False),
     )
     contract = json.loads(contract_path.read_text(encoding="utf-8"))
