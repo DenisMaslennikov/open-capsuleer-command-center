@@ -6,8 +6,8 @@ the sibling ``sp_table`` module; the speed is passed in by the caller in SP
 per minute.
 """
 
-from datetime import timedelta
 import math
+from datetime import timedelta
 
 from app.domain.skills.errors import (
     InvalidAccumulatedSkillSpError,
